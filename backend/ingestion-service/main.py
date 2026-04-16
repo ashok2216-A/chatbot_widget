@@ -13,7 +13,7 @@ from logger import get_logger
 logger = get_logger("Ingestion_Pipeline")
 
 URLS = [
-    "https://ashok2216-a.github.io/ashok2216_myportfolio.github.io/"
+    "https://myminibuds.in/"
 ]
 
 def hash_text(text):
