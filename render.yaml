@@ -20,7 +20,7 @@ services:
         sync: false
 
   # 2. React Static Site (Frontend Widget)
-  - type: static
+  - type: static_site
     name: portfolio-widget
     runtime: node
     region: ohio
