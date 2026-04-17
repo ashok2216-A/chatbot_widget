@@ -1,4 +1,4 @@
-# Hybrid A2UI Chatbot (Agentic RAG) https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg
+# Hybrid A2UI Chatbot (Agentic RAG) ![Cron job status](https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg)
 
 A production-ready, highly configurable AI Chat Widget and Agentic RAG (Retrieval-Augmented Generation) backend. This system features a unique **Hybrid A2UI Protocol**, allowing the assistant to seamlessly interleave natural conversational text with rich, interactive UI components (grids, cards, and adaptive layouts).
 
