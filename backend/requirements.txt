@@ -8,3 +8,8 @@ pydantic==2.12.5
 pinecone-client==5.0.1
 requests>=2.32.4
 python-multipart==0.0.12
+# ── Email & Calendar (EmailAgent + SchedulerAgent) ────────────────────────────
+google-auth>=2.29.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.126.0
+msal>=1.28.0
