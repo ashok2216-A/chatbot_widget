@@ -106,15 +106,17 @@ def parse_a2ui_chunks(text: str):
     # 2. For the remaining text, try to find "naked" JSON objects containing data_view
     remaining_text = text[last_pos:]
     if "data_view" in remaining_text:
-        naked_pattern = r'(\{[\s\S]*"data_view"[\s\S]*?\})'
-        naked_match = re.search(naked_pattern, remaining_text)
-        if naked_match:
-            pre_text = remaining_text[:naked_match.start()]
-            if pre_text.strip(): chunks.append({"type": "text", "content": pre_text})
+        # Robust search for the first '{' and last '}' containing 'data_view'
+        start_idx = remaining_text.find('{')
+        end_idx = remaining_text.rfind('}')
+        if start_idx != -1 and end_idx > start_idx:
+            potential_json = remaining_text[start_idx:end_idx+1]
             try:
-                content = json.loads(naked_match.group(1))
+                content = json.loads(potential_json)
+                pre_text = remaining_text[:start_idx]
+                if pre_text.strip(): chunks.append({"type": "text", "content": pre_text})
                 chunks.append({"type": "a2ui", "content": content})
-                remaining_text = remaining_text[naked_match.end():]
+                remaining_text = remaining_text[end_idx+1:]
             except Exception:
                 pass
     
