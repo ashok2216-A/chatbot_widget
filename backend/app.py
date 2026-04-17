@@ -196,8 +196,10 @@ async def chat(req: ChatRequest):
             if event.author:
                  logger.info(f"→ Agent '{event.author}' started processing...")
             
-            if event.actions:
-                for call in event.actions:
+            # Log tool calls using the correct helper method
+            calls = event.get_function_calls()
+            if calls:
+                for call in calls:
                     logger.info(f"  [Tool Call] {call.name} with args: {json.dumps(call.args)}")
 
             if event.is_final_response():
