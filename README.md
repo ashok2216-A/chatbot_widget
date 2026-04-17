@@ -1,6 +1,6 @@
 # Hybrid A2UI Chatbot (Agentic RAG) ![Cron job status](https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg)
 
-A production-ready, highly modular AI Chatbot featuring **Agentic RAG** (Retrieval-Augmented Generation) and full **Email & Calendar**
+A production-ready, highly modular AI Chatbot featuring **Agentic RAG** (Retrieval-Augmented Generation) and full **Email & Calendar** orchestration. This system uses a **Hybrid A2UI Protocol**, allowing the assistant to interleave natural text with rich, interactive UI components.
 
 ### 🧠 Hybrid A2UI v2 (Adaptive UI)
 The chatbot uses a sophisticated **Hybrid A2UI protocol** to blend natural language with interactive, structured components:
@@ -23,7 +23,6 @@ The chatbot uses a sophisticated **Hybrid A2UI protocol** to blend natural langu
   }
 }
 ```
-orchestration. This system uses a **Hybrid A2UI Protocol**, allowing the assistant to interleave natural text with rich, interactive UI components.
 
 ## 🌟 Key Features
 
