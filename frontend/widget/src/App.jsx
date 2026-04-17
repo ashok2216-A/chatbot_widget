@@ -3,7 +3,7 @@ import './index.css'
 
 // Constants are now handled dynamically via props in the App component
 
-export function AdaptiveView({ items, layout = 'grid' }) {
+export function AdaptiveView({ items, layout = 'grid', onCommand }) {
   return (
     <div className={`a2ui-adaptive-view ${layout}`}>
       {items.map((item, i) => (
@@ -11,8 +11,19 @@ export function AdaptiveView({ items, layout = 'grid' }) {
           {Object.entries(item).map(([key, value]) => {
             if (value === null || value === undefined) return null;
             
-            // Special handling for metrics/levels to keep them visual
-            const isLevel = key.toLowerCase() === 'level' || key.toLowerCase() === 'proficiency';
+            const lowerKey = key.toLowerCase();
+            
+            // 1. Status Badges
+            if (lowerKey === 'status' || lowerKey === 'state') {
+              return (
+                <div key={key} className={`a2ui-status-badge ${String(value).toLowerCase()}`}>
+                  {String(value)}
+                </div>
+              );
+            }
+
+            // 2. Proficiency/Level Metrics
+            const isLevel = lowerKey === 'level' || lowerKey === 'proficiency';
             if (isLevel) {
               const sanitize = (val) => {
                 if (typeof val === 'number') return val;
@@ -33,6 +44,17 @@ export function AdaptiveView({ items, layout = 'grid' }) {
               );
             }
 
+            // 3. Selection Checkboxes (for multi-select tasks)
+            if (typeof value === 'boolean' || lowerKey === 'selected') {
+              return (
+                <div className="card-row checkbox" key={key}>
+                  <input type="checkbox" checked={!!value} readOnly />
+                  <span className="row-key">{key}</span>
+                </div>
+              );
+            }
+
+            // Default Row
             return (
               <div className="card-row" key={key}>
                 <span className="row-key">{key}</span>
@@ -50,7 +72,7 @@ const COMPONENT_REGISTRY = {
   data_view: AdaptiveView,
 };
 
-export function A2UIRenderer({ data }) {
+export function A2UIRenderer({ data, onCommand }) {
   const componentKey = Object.keys(data).find(k => COMPONENT_REGISTRY[k]);
   
   if (!componentKey) {
@@ -63,14 +85,31 @@ export function A2UIRenderer({ data }) {
   return (
     <div className="a2ui-wrapper">
       {content.text && <p className="a2ui-title">{content.text}</p>}
-      <Component items={content.items || []} layout={content.layout || 'grid'} />
+      
+      <Component 
+        items={content.items || []} 
+        layout={content.layout || 'grid'} 
+        onCommand={onCommand}
+      />
+
+      {/* 4. Action Buttons */}
+      {content.actions && content.actions.length > 0 && (
+        <div className="a2ui-actions">
+          {content.actions.map((action, idx) => (
+            <button 
+              key={idx} 
+              className={`a2ui-btn ${action.variant || 'primary'}`}
+              onClick={() => onCommand(action.message)}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Chat Message ────────────────────────────────────────────────────────────
-
-// Simple helper to handle line breaks and bolding in text
 function formatText(text) {
   if (!text) return '';
   return text
@@ -78,9 +117,8 @@ function formatText(text) {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
-function Message({ msg }) {
+function Message({ msg, onCommand }) {
   const isBot = msg.sender === 'bot';
-  // If no chunks (legacy), fallback to text
   const chunks = msg.chunks || [{ type: 'text', content: msg.text }];
 
   return (
@@ -88,7 +126,7 @@ function Message({ msg }) {
       {chunks.map((chunk, idx) => (
         <div key={idx} className="cw-msg-chunk">
           {chunk.type === 'a2ui' ? (
-            <A2UIRenderer data={chunk.content} />
+            <A2UIRenderer data={chunk.content} onCommand={onCommand} />
           ) : (
             <span dangerouslySetInnerHTML={{ __html: formatText(chunk.content) }} />
           )}
@@ -190,6 +228,14 @@ export default function App({ config = {} }) {
     }
   }
 
+  const handleCommand = (cmdText) => {
+    if (!cmdText || loading) return;
+    setInput(cmdText);
+    setTimeout(() => {
+      document.getElementById('cw-send')?.click();
+    }, 10);
+  };
+
   const handleKey = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); sendMessage() }
   }
@@ -223,7 +269,7 @@ export default function App({ config = {} }) {
         </div>
 
         <div id="cw-messages">
-          {messages.map((m, i) => <Message key={i} msg={m} />)}
+          {messages.map((m, i) => <Message key={i} msg={m} onCommand={handleCommand} />)}
           {loading && <TypingDots />}
           <div ref={messagesEndRef} />
         </div>

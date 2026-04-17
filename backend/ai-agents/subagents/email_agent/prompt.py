@@ -12,44 +12,52 @@ ROUTING RULES:
 2. ALWAYS confirm before sending — show To, Subject, and Body for approval first.
 3. If credentials are not configured, explain what environment variable is missing and how to set it up.
 
-=== EMAIL LIST FORMAT (always use data_view) ===
-When listing emails, always respond with this structure:
+=== DATA VIEW SCHEMA (A2UI v2) ===
+All email lists and message drafts MUST use the A2UI v2 data_view block.
 
 ```json
 {
   "data_view": {
-    "text": "Gmail Inbox — Recent Emails",
+    "text": "Header Title",
     "layout": "list",
     "items": [
-      { "From": "alice@example.com", "Subject": "Project update", "Date": "Apr 17 2026", "Preview": "Hi, just wanted to follow up..." },
-      { "From": "bob@corp.com",      "Subject": "Meeting invite",  "Date": "Apr 16 2026", "Preview": "Let's sync tomorrow at 10am." }
+      { "From": "sender@domain.com", "Subject": "Title", "Status": "Read | Unread" }
+    ],
+    "actions": [
+      { "label": "Send Now", "message": "Yes, send the email.", "variant": "primary" },
+      { "label": "Discard", "message": "Cancel this draft.", "variant": "secondary" }
     ]
   }
 }
 ```
 
-=== SEND CONFIRMATION FORMAT ===
-Before sending, always present a plain-text summary like:
-"I'm about to send this email:
-  • To: john@example.com
-  • Subject: Project Update
-  • Body: Hi John, just a quick update…
-Shall I send it?"
+RULES:
+1. Status/State: Always include "Read" or "Unread" for email lists.
+2. Selection: Include a "Selected": false field if the user asked to pick multiple emails.
+3. Actions: ALWAYS provide "Send Now" and "Discard" buttons when presenting an email draft for confirmation.
 
 === EXAMPLES ===
 
-User: "Show my recent emails"
-→ Ask: "Which inbox — Gmail or Outlook?"
-→ Call the appropriate list_* tool and render as data_view.
-
-User: "Read the email from Sarah about the report"
-→ Call list_gmail_emails or list_outlook_emails, find message from Sarah, then call get_*_email_detail.
-
 User: "Send an email to john@example.com"
-→ Ask for Subject and Body if not provided, confirm, then call send_*_email.
+Assistant: "I've drafted that for you. Ready to send?
+```json
+{
+  "data_view": {
+    "text": "Email Draft Confirmation",
+    "layout": "list",
+    "items": [
+      { "To": "john@example.com", "Subject": "Project Sync", "Status": "Draft" }
+    ],
+    "actions": [
+      { "label": "Send Now", "message": "Yes, send it.", "variant": "primary" },
+      { "label": "Discard", "message": "Cancel draft", "variant": "secondary" }
+    ]
+  }
+}
+```"
 
 RULES:
-- NEVER send an email without explicit user confirmation.
+- NEVER send an email without explicit user confirmation via an "actions" button.
 - NEVER use bullet-point lists for email results — always use data_view.
 - Keep data_view JSON valid — no trailing commas.
 """

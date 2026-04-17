@@ -1,6 +1,28 @@
-# Hybrid A2UI Chatbot (Agentic RAG) ![Cron job status](https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg)
+# Agentic A2UI Chatbot ![Cron job status](https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg)
 
 A production-ready, highly modular AI Chatbot featuring **Agentic RAG** (Retrieval-Augmented Generation) and full **Email & Calendar** orchestration. This system uses a **Hybrid A2UI Protocol**, allowing the assistant to interleave natural text with rich, interactive UI components.
+
+### 🧠 Hybrid A2UI v2 (Adaptive UI)
+The chatbot uses a sophisticated **Hybrid A2UI protocol** to blend natural language with interactive, structured components:
+
+- **Interactive Buttons**: Confirm or discard actions (Send Email, Create Event) with a single click.
+- **Status Badges**: Real-time visual feedback for item states (e.g., `Read`, `Urgent`, `Success`).
+- **Proficiency Bars**: Elegant metrics for skill levels and project progress.
+- **Auto-Repair Parser**: The backend automatically fixes common LLM formatting issues (like trailing commas) before rendering.
+
+**Example A2UI v2 Block:**
+```json
+{
+  "data_view": {
+    "text": "Email Draft",
+    "layout": "list",
+    "items": [{ "To": "ashok@example.com", "Status": "Draft" }],
+    "actions": [
+      { "label": "Send Now", "message": "Yes, send it.", "variant": "primary" }
+    ]
+  }
+}
+```
 
 ## 🌟 Key Features
 
