@@ -13,7 +13,10 @@ from rag_agent import rag_agent  # type: ignore
 
 root_agent = LlmAgent(
     name="CoordinatorAgent",
-    model=LiteLlm(model="openrouter/google/gemini-2.5-flash-free"),
+    model=LiteLlm(
+        model="openrouter/google/gemini-2.5-flash-free",
+        fallbacks=["groq/llama-3.1-70b-versatile", "mistral/mistral-large-latest"]
+    ),
     description="I am the central coordinator. I handle general greetings and route specific portfolio data queries to my subagent.",
     instruction=ROOT_INSTRUCTION,
     sub_agents=[
