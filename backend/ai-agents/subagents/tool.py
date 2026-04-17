@@ -37,7 +37,7 @@ def rag_tool(query: str) -> str:
     # Pinecone SDK v3 query
     results = index.query(
         vector=query_embedding,
-        top_k=5,
+        top_k=10,
         include_metadata=True
     )
     

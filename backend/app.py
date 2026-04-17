@@ -35,6 +35,8 @@ runner = Runner(
 
 app = FastAPI()
 
+ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8000")
+
 # Bulletproof Origin Parsing: Extract only the base (scheme + host) from any URL provided
 from urllib.parse import urlparse
 ALLOWED_ORIGINS_LIST = []
@@ -67,7 +69,7 @@ app.add_middleware(
 # and the /health route. Everything else must carry a recognised Origin header.
 @app.middleware("http")
 async def strict_origin_middleware(request: Request, call_next):
-    # Always pass through OPTIONS preflight and health checks
+    # Always pass through OPTIONS preflight and health checks BEFORE any logic
     if request.method == "OPTIONS" or request.url.path == "/health":
         return await call_next(request)
 
