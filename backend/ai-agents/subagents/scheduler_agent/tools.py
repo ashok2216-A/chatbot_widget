@@ -42,21 +42,27 @@ def _get_google_calendar_service():
     token_b64 = os.getenv("GOOGLE_TOKEN_JSON_B64")
     if not token_b64:
         return None, (
-            "Google Calendar is not configured. "
-            "Set GOOGLE_TOKEN_JSON_B64 (base64-encoded token.json). "
-            "Ensure the token includes the 'https://www.googleapis.com/auth/calendar' scope."
+            "[CONFIG ERROR] Google Calendar is not configured. "
+            "Set GOOGLE_TOKEN_JSON_B64 in .env. "
+            "You can generate this by running 'python backend/scripts/setup_google_oauth.py' locally."
         )
     try:
         from google.oauth2.credentials import Credentials
         from googleapiclient.discovery import build
+        from google.auth.exceptions import RefreshError
 
         token_data = json.loads(base64.b64decode(token_b64).decode())
         creds = Credentials.from_authorized_user_info(token_data)
+        
+        # Test the credentials
         service = build("calendar", "v3", credentials=creds)
         return service, None
+    except RefreshError as rerr:
+        logger.error(f"Google Calendar token refresh failed: {rerr}")
+        return None, "[AUTH ERROR] Your Google session has expired. Please run 'python backend/scripts/setup_google_oauth.py' to refresh."
     except Exception as exc:
         logger.error(f"Google Calendar auth error: {exc}")
-        return None, f"Google Calendar authentication failed: {exc}"
+        return None, f"[AUTH ERROR] Google Calendar authentication failed: {str(exc)}"
 
 
 def list_google_calendar_events(days_ahead: int = 7) -> str:
@@ -184,8 +190,8 @@ def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
 
     if not all([client_id, client_secret, tenant_id]):
         return None, (
-            "Microsoft Calendar is not configured. "
-            "Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID."
+            "[CONFIG ERROR] Microsoft Calendar is not configured. "
+            "Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID in .env."
         )
 
     try:
@@ -193,33 +199,38 @@ def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
 
         cache = msal.SerializableTokenCache()
         if token_cache_b64:
-            cache.deserialize(base64.b64decode(token_cache_b64).decode())
+            try:
+                cache.deserialize(base64.b64decode(token_cache_b64).decode())
+            except Exception as e:
+                logger.error(f"MS Calendar cache deserialize error: {e}")
+                return None, "[AUTH ERROR] Microsoft token cache is corrupted. Please run 'python backend/scripts/setup_microsoft_oauth.py' again."
 
         app = msal.ConfidentialClientApplication(
             client_id,
-            authority="https://login.microsoftonline.com/consumers",  # personal MS accounts
+            authority="https://login.microsoftonline.com/consumers",
             client_credential=client_secret,
             token_cache=cache,
         )
 
         scopes = ["https://graph.microsoft.com/.default"]
         accounts = app.get_accounts()
-        result = (
-            app.acquire_token_silent(scopes, account=accounts[0])
-            if accounts
-            else app.acquire_token_for_client(scopes=scopes)
-        )
+        
+        result = None
+        if accounts:
+            result = app.acquire_token_silent(scopes, account=accounts[0])
+        
+        if not result or "access_token" not in result:
+             result = app.acquire_token_for_client(scopes=scopes)
 
         if result and "access_token" in result:
             return result["access_token"], None
 
-        return None, (
-            f"Microsoft token acquisition failed: "
-            f"{result.get('error_description', 'Unknown error')}"
-        )
+        err_msg = result.get('error_description', 'No refresh token available')
+        return None, f"[AUTH ERROR] Microsoft Calendar session expired or invalid: {err_msg}. Please run 'python backend/scripts/setup_microsoft_oauth.py' locally."
+        
     except Exception as exc:
         logger.error(f"MS Calendar auth error: {exc}")
-        return None, f"Microsoft authentication error: {exc}"
+        return None, f"[AUTH ERROR] Microsoft Calendar authentication error: {str(exc)}"
 
 
 def _ms_headers(token: str) -> dict:
