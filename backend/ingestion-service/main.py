@@ -19,53 +19,85 @@ URLS = [
 def hash_text(text):
     return hashlib.md5(text.encode()).hexdigest()
 
-def chunk_text(text, size=800, overlap=100):
+def chunk_text(text, size=1000, overlap=200):
+    # Simple recursive-inspired splitter: try to split by paragraph, then sentence
+    import re
+    paragraphs = text.split("\n\n")
     chunks = []
-    for i in range(0, len(text), size - overlap):
-        chunks.append(text[i:i+size])
-    return chunks
+    current_chunk = ""
+
+    for p in paragraphs:
+        if len(current_chunk) + len(p) < size:
+            current_chunk += p + "\n\n"
+        else:
+            if current_chunk: chunks.append(current_chunk.strip())
+            current_chunk = p + "\n\n"
+    
+    if current_chunk: chunks.append(current_chunk.strip())
+    
+    # Final check: if any chunk is still too big, force a hard split
+    final_chunks = []
+    for c in chunks:
+        if len(c) > size:
+            for i in range(0, len(c), size - overlap):
+                final_chunks.append(c[i:i+size])
+        else:
+            final_chunks.append(c)
+    return final_chunks
+
+def infer_category(text):
+    t = text.lower()
+    if any(k in t for k in ["project", "built with", "github", "developed"]): return "project"
+    if any(t.count(k) > 0 for k in ["skill", "expert", "proficient", "technology"]): return "skill"
+    if any(k in t for k in ["degree", "university", "college", "education"]): return "education"
+    if any(k in t for k in ["work", "experience", "responsibility", "position"]): return "experience"
+    return "general"
 
 def ingest():
-    logger.info("Starting ingestion pipeline...")
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    logger.info("Starting High-Precision Ingestion Pipeline...")
     index = get_index()
     existing_hashes = get_hashes()
-    logger.info(f"Loaded {len(existing_hashes)} existing document hashes.")
 
     for url in URLS:
         logger.info(f"Scraping URL: {url}")
-        text = scrape(url)
+        site_data = scrape(url)
+        text = site_data["text"]
+        title = site_data["title"]
+        
         chunks = chunk_text(text)
-
         vectors = []
 
         for chunk in chunks:
             h = hash_text(chunk)
-
             if h in existing_hashes:
-                logger.debug(f"Skipping identical chunk (Hash: {h[:8]}...)")
+                logger.debug(f"Skipping up-to-date chunk (Hash: {h[:8]}...)")
                 continue
 
+            category = infer_category(chunk)
+
             vectors.append({
-                "id": h,  # deterministic ID
+                "id": h,
                 "values": embed_text(chunk),
                 "metadata": {
                     "text": chunk,
                     "source": url,
-                    "page_type": "general",
-                    "category": "unknown",
-                    "last_updated": "2026-04-16",
+                    "title": title,
+                    "category": category,
+                    "last_updated": today,
                     "hash": h
                 }
             })
-
             save_hash(h)
 
         if vectors:
-            logger.warning(f"Upserting {len(vectors)} new vectors into Pinecone database...")
+            logger.warning(f"Upserting {len(vectors)} new high-precision vectors into Pinecone...")
             index.upsert(vectors)
-            logger.info("Upsert completed successfully.")
+            logger.info("Sync completed successfully.")
         else:
-            logger.info("No new vectors to upsert. Database is completely up to date!")
+            logger.info("All data is currently optimized and up to date.")
 
 if __name__ == "__main__":
     try:
