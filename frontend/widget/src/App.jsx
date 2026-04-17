@@ -3,7 +3,7 @@ import './index.css'
 
 // Constants are now handled dynamically via props in the App component
 
-function AdaptiveView({ items, layout = 'grid' }) {
+export function AdaptiveView({ items, layout = 'grid' }) {
   return (
     <div className={`a2ui-adaptive-view ${layout}`}>
       {items.map((item, i) => (
@@ -50,7 +50,7 @@ const COMPONENT_REGISTRY = {
   data_view: AdaptiveView,
 };
 
-function A2UIRenderer({ data }) {
+export function A2UIRenderer({ data }) {
   const componentKey = Object.keys(data).find(k => COMPONENT_REGISTRY[k]);
   
   if (!componentKey) {
