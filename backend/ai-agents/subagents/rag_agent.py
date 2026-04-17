@@ -11,7 +11,7 @@ from rag_prompt import RAG_INSTRUCTION
 # Define the Portfolio Search Agent
 rag_agent = Agent(
     name="PortfolioSearchAgent",
-    model=LiteLlm(model="openrouter/openai/gpt-4o-mini"),
+    model=LiteLlm(model="openrouter/google/gemini-2.5-flash-free"),
     description="I handle queries regarding professional background, skills, projects, and technical abilities found in the knowledge base.",
     tools=[rag_tool],
     instruction=RAG_INSTRUCTION
