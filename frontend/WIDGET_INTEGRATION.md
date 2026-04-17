@@ -5,7 +5,7 @@ Your AI Chat Widget is now a **High-Performance Single-Script Plugin**. You can 
 ## 1. Production Build
 Ensure you are using your live backend URL, then build the widget:
 ```powershell
-cd widget/frontend
+cd frontend/widget
 npm.cmd run build
 ```
 

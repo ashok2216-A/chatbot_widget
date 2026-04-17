@@ -7,8 +7,27 @@ on:
     branches: [ main, master ]
 
 jobs:
+  detect-changes:
+    name: 🔍 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
   backend-validation:
-    name: Backend (Python 3.11)
+    name: 🐍 Backend (Python 3.11)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +51,9 @@ jobs:
           pytest backend/tests/
 
   frontend-validation:
-    name: Frontend (Node.js 20)
+    name: ⚛️ Frontend (Node.js 20)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,3 +76,37 @@ jobs:
       - name: Build Widget Bundle
         working-directory: ./frontend/widget
         run: npm run build
+
+  pipeline-summary:
+    name: 🚀 Pipeline Summary
+    needs: [detect-changes, backend-validation, frontend-validation]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "### 🚀 Pipeline Summary — chatbot-widget" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job Area | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          
+          # Backend Status
+          if [ "${{ needs.backend-validation.result }}" == "success" ]; then
+            echo "| 🐍 Backend | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.backend-validation.result }}" == "skipped" ]; then
+            echo "| 🐍 Backend | ⚪ Skipped (No changes) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🐍 Backend | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Frontend Status
+          if [ "${{ needs.frontend-validation.result }}" == "success" ]; then
+            echo "| ⚛️ Frontend | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.frontend-validation.result }}" == "skipped" ]; then
+            echo "| ⚛️ Frontend | ⚪ Skipped (No changes) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| ⚛️ Frontend | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚡ *Powered by Antigravity CI Engine*" >> $GITHUB_STEP_SUMMARY

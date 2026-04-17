@@ -11,6 +11,12 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    include: ['src/__tests__/**/*.{test,spec}.{js,jsx}'],
+  },
   build: {
     outDir: '../dist',
     emptyOutDir: true,

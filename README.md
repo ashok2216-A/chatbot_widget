@@ -15,7 +15,7 @@ A production-ready, highly configurable AI Chat Widget and Agentic RAG (Retrieva
 
 ## 🏗️ Architecture Overview
 
-### 1. `widget/frontend` (The Plugin)
+### 1. `frontend/widget` (The Plugin)
 A React-based widget optimized into a single `widget.js` bundle using Vite. It exposes a global `window.ChatWidget` object for runtime configuration.
 
 ### 2. `backend/app.py` (The Gateway)
@@ -70,7 +70,7 @@ uvicorn backend.app:app --reload
 
 ### Frontend Setup
 ```bash
-cd widget/frontend
+cd frontend/widget
 npm install
 npm run dev # Access via http://localhost:5173/dev-test.html
 ```
