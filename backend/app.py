@@ -35,9 +35,9 @@ runner = Runner(
 
 app = FastAPI()
 
-# Accept comma-separated origins from .env. Default includes common dev ports.
 ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8000")
-ALLOWED_ORIGINS_LIST = [o.strip() for o in ALLOWED_ORIGINS_STR.split(",") if o.strip()]
+# Clean up any accidental quotes or spaces from the env string
+ALLOWED_ORIGINS_LIST = [o.strip().replace('"', '').replace("'", "") for o in ALLOWED_ORIGINS_STR.split(",") if o.strip()]
 
 # ── CORS must be added FIRST so preflight OPTIONS responses work correctly ──
 # The CORSMiddleware wraps everything: it handles OPTIONS itself and injects
@@ -55,7 +55,7 @@ app.add_middleware(
 # and the /health route. Everything else must carry a recognised Origin header.
 @app.middleware("http")
 async def strict_origin_middleware(request: Request, call_next):
-    # Always pass through OPTIONS preflight and health checks
+    # Always pass through OPTIONS preflight and health checks BEFORE any logic
     if request.method == "OPTIONS" or request.url.path == "/health":
         return await call_next(request)
 
