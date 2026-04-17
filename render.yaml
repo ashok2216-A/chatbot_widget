@@ -18,6 +18,17 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      # ── EmailAgent + SchedulerAgent credentials ──────────────────────
+      - key: GOOGLE_TOKEN_JSON_B64
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: AZURE_TOKEN_CACHE_B64
+        sync: false
 
   # 2. React Static Site (Frontend Widget)
   - type: static
