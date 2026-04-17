@@ -101,51 +101,57 @@ async def strict_origin_middleware(request: Request, call_next):
 
 def parse_a2ui_chunks(text: str):
     """
-    Parses a string for ```a2ui { ... } ``` blocks and returns a list of chunks.
-    Chunks are of type "text" or "a2ui".
+    Enhanced parser for A2UI Hybrid Protocol.
+    Splits text into chunks of 'text' and 'a2ui' (JSON blocks).
+    Handles malformed JSON and trailing commas gracefully.
     """
-    # Matches ```a2ui, ```json, or unlabeled blocks containing a JSON object { ... }
-    # Matches anything between triple-backticks. We'll handle the JSON parsing inside.
-    pattern = r'```(?:[\w\-]*)\s*(\{[\s\S]*?\})\s*```'
-    
+    if not text: return []
     chunks = []
+    # Match triple backtick JSON blocks
+    pattern = r'```(?:[\w\-]*)\s*(\{[\s\S]*?\})\s*```'
     last_pos = 0
-    
-    # 1. First, find all explicit markdown blocks
+
+    def clean_json(s: str) -> str:
+        # Remove trailing commas in arrays/objects before parsing
+        s = re.sub(r",\s*([\]\}])", r"\1", s)
+        return s
+
     for match in re.finditer(pattern, text):
         start, end = match.span()
+        # Add preceding text
         if start > last_pos:
-            raw_text = text[last_pos:start]
-            if raw_text.strip(): chunks.append({"type": "text", "content": raw_text})
+            pre_text = text[last_pos:start].strip()
+            if pre_text: chunks.append({"type": "text", "content": pre_text})
         
-        json_content = match.group(1).strip()
+        json_str = clean_json(match.group(1).strip())
         try:
-            chunks.append({"type": "a2ui", "content": json.loads(json_content)})
+            chunks.append({"type": "a2ui", "content": json.loads(json_str)})
         except Exception:
+            # If JSON parsing fails, treat it as raw text
             chunks.append({"type": "text", "content": match.group(0)})
         last_pos = end
     
-    # 2. For the remaining text, try to find "naked" JSON objects containing data_view
-    remaining_text = text[last_pos:]
-    if "data_view" in remaining_text:
-        # Robust search for the first '{' and last '}' containing 'data_view'
-        start_idx = remaining_text.find('{')
-        end_idx = remaining_text.rfind('}')
-        if start_idx != -1 and end_idx > start_idx:
-            potential_json = remaining_text[start_idx:end_idx+1]
+    # Check for any remaining text after the last block
+    remaining = text[last_pos:].strip()
+    if remaining:
+        # Fallback for "naked" data_view blocks without backticks
+        if "data_view" in remaining:
             try:
-                content = json.loads(potential_json)
-                pre_text = remaining_text[:start_idx]
-                if pre_text.strip(): chunks.append({"type": "text", "content": pre_text})
-                chunks.append({"type": "a2ui", "content": content})
-                # Check for any remaining text after the JSON block
-                remaining_text = remaining_text[end_idx+1:]
+                # Basic search for the first { and last }
+                start_idx = remaining.find('{')
+                end_idx = remaining.rfind('}')
+                if start_idx != -1 and end_idx > start_idx:
+                    json_str = clean_json(remaining[start_idx:end_idx+1])
+                    content = json.loads(json_str)
+                    pre = remaining[:start_idx].strip()
+                    if pre: chunks.append({"type": "text", "content": pre})
+                    chunks.append({"type": "a2ui", "content": content})
+                    remaining = remaining[end_idx+1:].strip()
             except Exception:
                 pass
-    
-    # 3. Final cleanup of remaining text
-    if remaining_text.strip():
-        chunks.append({"type": "text", "content": remaining_text})
+        
+        if remaining:
+            chunks.append({"type": "text", "content": remaining})
             
     return chunks
 

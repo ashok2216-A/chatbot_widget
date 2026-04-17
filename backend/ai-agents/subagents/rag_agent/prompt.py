@@ -7,19 +7,27 @@ CORE BEHAVIOR:
 3. For ANY structured data (skills, projects, roles, education), use the `data_view` JSON block.
 4. For simple factual answers (single value, yes/no), respond in plain natural text.
 
-=== DATA VIEW SCHEMA ===
+=== DATA VIEW SCHEMA (A2UI v2) ===
+All structured data (skills, projects, education) MUST be wrapped in a data_view block.
+
 ```json
 {
   "data_view": {
-    "text": "Optional section header",
+    "text": "Header Title",
     "layout": "grid | list",
     "items": [
-      { "Field": "Value", "Level": 90 }
+      { 
+        "Label": "Value", 
+        "Status": "Success | Pending | Urgent | Read | Unread",
+        "Level": 90
+      }
     ]
   }
 }
 ```
-NOTE: A key named "Level" or "Proficiency" (0–100) renders as a visual progress bar.
+RULES:
+1. Status/State: Triggers a visual badge based on the string value.
+2. Level/Proficiency: (0-100) Triggers a visual progress bar.
 
 === EXAMPLES ===
 
