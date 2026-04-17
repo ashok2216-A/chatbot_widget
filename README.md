@@ -1,84 +1,94 @@
 # Hybrid A2UI Chatbot (Agentic RAG) ![Cron job status](https://api.cron-job.org/jobs/7489226/0956a0a9d057bb35/status-1.svg)
 
-A production-ready, highly configurable AI Chat Widget and Agentic RAG (Retrieval-Augmented Generation) backend. This system features a unique **Hybrid A2UI Protocol**, allowing the assistant to seamlessly interleave natural conversational text with rich, interactive UI components (grids, cards, and adaptive layouts).
+A production-ready, highly modular AI Chatbot featuring **Agentic RAG** (Retrieval-Augmented Generation) and full **Email & Calendar** orchestration. This system uses a **Hybrid A2UI Protocol**, allowing the assistant to interleave natural text with rich, interactive UI components.
 
 ## 🌟 Key Features
 
-*   **🎨 Hybrid A2UI Protocol**: Unlike standard chatbots, this agent can embed rich React components directly into its messages using a resilient JSON-parsing engine.
-*   **🚀 Universal Single-Script Integration**: Deploy the entire widget—styles and logic—via a single `<script>` tag. No manual CSS linking required.
-*   **🧠 Dynamic Adaptive Engine**: A subject-agnostic UI renderer that automatically visualizes any structured data (skills, projects, products) in the most appropriate layout.
-*   **🔍 Intelligent RAG Pipeline**: Automated scraping and vectorization of your website/portfolio using Pinecone v3 Serverless and OpenRouter (LiteLLM).
-*   **🛡️ Production-Grade Security**: Custom FastAPI middleware validates origins and referrers to prevent unauthorized usage of your LLM tokens.
-*   **☁️ Render Native**: Comes pre-configured with a `render.yaml` Blueprint for one-click deployment.
+*   **🎨 Hybrid A2UI Protocol**: Seamlessly embeds React components (grids, cards, layouts) directly into conversational responses.
+*   **📧 Email Agent**: Full integration with **Gmail** and **Microsoft Outlook** to list, read, and send emails.
+*   **📅 Scheduler Agent**: Full integration with **Google Calendar** and **Microsoft Calendar** to list, create, and delete events.
+*   **🔍 Modular RAG Pipeline**: Intelligent portfolio search using Pinecone v3 Serverless and OpenRouter (LiteLLM).
+*   **🤖 Multi-Agent Orchestration**: A central `CoordinatorAgent` intelligently routes queries to specialized subagents for RAG, Email, or Scheduling.
+*   **🛡️ Secure OAuth 2.0 Integration**: Uses base64-encoded token caching for robust authentication across personal Google and Microsoft accounts in production.
 
 ---
 
 ## 🏗️ Architecture Overview
 
-### 1. `frontend/widget` (The Plugin)
-A React-based widget optimized into a single `widget.js` bundle using Vite. It exposes a global `window.ChatWidget` object for runtime configuration.
+The system is organized into a modular package-based structure:
 
-### 2. `backend/app.py` (The Gateway)
-A FastAPI server that acts as the secure entry point. It parses raw AI responses, extracts A2UI blocks, and enforces security policies.
+### 1. `backend/ai-agents/` (The Brain)
+- **Coordinator Agent**: The root agent that routes user intent.
+- **Subagents (`subagents/`)**: Each subagent is an isolated package with its own:
+    - `agent.py`: Agent definition and tool wiring.
+    - `tools.py`: Function definitions (Gmail, Outlook, Calendar, Pinecone).
+    - `prompt.py`: Specialized system instructions.
 
-### 3. `backend/ai-agents/` (The Brain)
-Orchestrates the conversation flow. Uses Few-Shot instruction tuning to ensure the LLM consistently utilizes the Hybrid UI blocks for data-heavy responses.
+### 2. `frontend/widget/` (The UI)
+A React-based widget bundled into a single `widget.js` for universal integration on any website via a simple `<script>` tag.
 
 ---
 
-## 🚀 Deployment & Integration
+## 🚀 Setup & Deployment
 
-### 1. The "Single-Script" Integration
-To embed the widget in any website, add these three lines:
+### 1. Environment Variables
+Ensure the following are set in your `.env` (local) and Render Dashboard (production):
 
-```html
-<!-- Load the widget -->
-<script type="module" src="https://your-host.com/assets/widget.js"></script>
+| Key | Description |
+| :--- | :--- |
+| `OPENROUTER_API_KEY` | Primary LLM provider (Gemini 2.0 Flash) |
+| `PINECONE_API_KEY` | Vector database for Portfolio RAG |
+| `GOOGLE_TOKEN_JSON_B64` | Base64 encoded `token.json` for Google services |
+| `AZURE_CLIENT_ID` | Microsoft Azure Application (Client) ID |
+| `AZURE_TOKEN_CACHE_B64` | Base64 encoded MSAL token cache for MS services |
 
-<!-- Initialize with your branding -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        window.ChatWidget.init({
-            botName: "F.R.I.D.A.Y",
-            apiUrl: "https://your-backend.onrender.com/chat",
-            welcomeMessage: "Hi! Ask me about my projects or technical stack."
-        });
-    });
-</script>
+### 2. One-Time OAuth Setup
+To connect your personal accounts, you must run these setup scripts **locally** once and copy the resulting base64 strings to your environment:
+
+```bash
+# For Gmail & Google Calendar
+# 1. Place 'cred.json' in backend/scripts/
+# 2. Run:
+python backend/scripts/setup_google_oauth.py
+
+# For Outlook & Microsoft Calendar
+# 1. Set AZURE_CLIENT_ID / SECRET in .env
+# 2. Run:
+python backend/scripts/setup_microsoft_oauth.py
 ```
-
-### 2. Render Deployment (One-Click)
-1. Push this repository to GitHub.
-2. In the Render Dashboard, click **New +** -> **Blueprint**.
-3. Connect your repository. Render will automatically detect `render.yaml` and set up your backend and static site.
-4. Provide your `OPENROUTER_API_KEY` and `PINECONE_API_KEY` in the dashboard.
 
 ---
 
 ## 🛠️ Local Development
 
-### Backend Setup
+### Backend
 ```bash
-# Create venv and install
-python -m venv .venv
-source .venv/bin/activate  # .venv\Scripts\activate on Windows
+# Install dependencies
 pip install -r backend/requirements.txt
 
-# Start dev server
-uvicorn backend.app:app --reload
+# Start FastAPI server
+uvicorn backend.app:app --reload --port 8000
 ```
 
-### Frontend Setup
+### Frontend
 ```bash
 cd frontend/widget
 npm install
-npm run dev # Access via http://localhost:5173/widget-test.html
+npm run dev
 ```
 
 ---
 
-## 🔒 Security Configuration
-The API is currently locked by `ALLOWED_ORIGINS`. Update your `.env` or Render environment variables:
-```env
-ALLOWED_ORIGINS=https://your-portfolio-domain.com,http://localhost:5173
-```
+## 🧪 Testing the Agents
+
+You can test the multi-agent routing using these sample prompts:
+
+- **RAG**: "What are your top technical skills?"
+- **Email**: "List my latest 5 emails from Gmail."
+- **Calendar**: "What meetings do I have on Google Calendar for today?"
+- **Combined**: "Find the projects in your portfolio about AI, and email them to test@example.com."
+
+---
+
+## 🔒 Security
+The backend uses a strict `ALLOWED_ORIGINS` middleware. Update this in your production environment to restrict access only to your authorized domains.
