@@ -18,7 +18,7 @@ from scheduler_agent.agent import scheduler_agent  # type: ignore
 
 # ── Root Coordinator Agent ─────────────────────────────────────────────────────
 root_agent = LlmAgent(
-    name="CoordinatorAgent",
+    name="FRIDAY",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
         fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],
