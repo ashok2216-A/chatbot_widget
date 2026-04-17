@@ -6,7 +6,7 @@ google-adk==1.31.0
 litellm==1.83.9
 pydantic==2.12.5
 pinecone-client==5.0.1
-requests==2.32.5
+requests==2.33.0
 python-multipart==0.0.12
 # ── Email & Calendar (EmailAgent + SchedulerAgent) ────────────────────────────
 google-auth==2.49.2
