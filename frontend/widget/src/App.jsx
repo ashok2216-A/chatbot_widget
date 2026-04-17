@@ -122,6 +122,7 @@ export default function App({ config = {} }) {
 
   // Configuration with fallbacks
   const botName = config.botName || "Portfolio Assistant"
+  const botLogo = config.botLogo || "./assets/img/my_logo.png"
   const welcomeMessage = config.welcomeMessage || "Hello! I'm your AI assistant. How can I help you today?"
   const apiUrl = config.apiUrl || (import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/chat` : 'http://localhost:8000/chat')
 
@@ -160,7 +161,10 @@ export default function App({ config = {} }) {
         },
       ])
     } catch {
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Oops! Servers seem down. Try again later.' }])
+      setMessages(prev => [
+        ...prev, 
+        { sender: 'bot', text: 'Oops! Servers seem down. Try again later.' }
+      ])
     } finally {
       setLoading(false)
     }
@@ -178,10 +182,12 @@ export default function App({ config = {} }) {
           <div className="cw-header-title">
             <div className="cw-avatar">
               <img 
-                src="/my_logo.png" 
+                src={botLogo} 
                 alt="Bot Logo" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
-                onError={e => { e.target.style.display='none' }} 
+                onError={e => { 
+                  e.target.src = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png"; // Fallback to a nice AI icon
+                }} 
               />
             </div>
             <div className="cw-info">

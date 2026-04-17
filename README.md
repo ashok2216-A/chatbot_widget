@@ -1,68 +1,84 @@
-# AI Portfolio Chatbot (RAG Architecture)
+# Hybrid A2UI Chatbot (Agentic RAG)
 
-A production-ready, embeddable AI Chat Widget and RAG (Retrieval-Augmented Generation) backend. It intelligently scrapes your portfolio, embeds the data into a vector database, and uses an explicitly orchestrated AI agent to answer user queries safely and strictly based on your context.
+A production-ready, highly configurable AI Chat Widget and Agentic RAG (Retrieval-Augmented Generation) backend. This system features a unique **Hybrid A2UI Protocol**, allowing the assistant to seamlessly interleave natural conversational text with rich, interactive UI components (grids, cards, and adaptive layouts).
 
-## 🌟 Features
-* **Modern UI Widget:** A beautiful, responsive glassmorphism chat widget deployable via a single `<script>` tag.
-* **Intelligent Ingestion:** Automated scraping of your portfolio/website. Uses MD5 hashing to prevent duplicate embedding insertions.
-* **Serverless Vector DB:** Fully integrated with Pinecone v3 Serverless architecture.
-* **Provider Agnostic (LiteLLM & OpenRouter):** The entire stack is built to route through OpenRouter—meaning you can instantly swap between OpenAI, Anthropic, or Meta models without changing any code.
-* **Strict Security:** Custom FastAPI middleware validates `Origin` and `Referer` headers, ensuring the API can *only* be accessed from your actual deployed website domain.
+## 🌟 Key Features
+
+*   **🎨 Hybrid A2UI Protocol**: Unlike standard chatbots, this agent can embed rich React components directly into its messages using a resilient JSON-parsing engine.
+*   **🚀 Universal Single-Script Integration**: Deploy the entire widget—styles and logic—via a single `<script>` tag. No manual CSS linking required.
+*   **🧠 Dynamic Adaptive Engine**: A subject-agnostic UI renderer that automatically visualizes any structured data (skills, projects, products) in the most appropriate layout.
+*   **🔍 Intelligent RAG Pipeline**: Automated scraping and vectorization of your website/portfolio using Pinecone v3 Serverless and OpenRouter (LiteLLM).
+*   **🛡️ Production-Grade Security**: Custom FastAPI middleware validates origins and referrers to prevent unauthorized usage of your LLM tokens.
+*   **☁️ Render Native**: Comes pre-configured with a `render.yaml` Blueprint for one-click deployment.
 
 ---
 
 ## 🏗️ Architecture Overview
 
-### 1. `widget/` (Frontend)
-Contains the embeddable chat widget script (`widget.js`) and UI components. Deploy this to **Vercel** or any static hosting, or inject it directly into your portfolio HTML.
+### 1. `frontend/widget` (The Plugin)
+A React-based widget optimized into a single `widget.js` bundle using Vite. It exposes a global `window.ChatWidget` object for runtime configuration.
 
-### 2. `backend/ingestion-service/` (Cron / Pipeline)
-* Scrapes the target URL (`scraper.py`).
-* Chunks text and generates 1536-dimensional vectors using `openai/text-embedding-3-small` via OpenRouter (`embedder.py`).
-* Upserts context to your Pinecone Serverless Database.
+### 2. `backend/app.py` (The Gateway)
+A FastAPI server that acts as the secure entry point. It parses raw AI responses, extracts A2UI blocks, and enforces security policies.
 
-### 3. `backend/rag-service/` (AI Engine)
-* Uses a custom LiteLLM ReAct tool-calling loop.
-* Intercepts chat queries, generates a search vector, and retrieves context from Pinecone (`tools/retriever.py`).
-* Injects context into the prompt and returns a personalized answer.
-
-### 4. `backend/app.py` (API Gateway)
-The entry point deployed to **Render**. It exposes the secure `/chat` endpoint for the frontend widget and acts as the gatekeeper for the internal `rag-service`.
+### 3. `backend/ai-agents/` (The Brain)
+Orchestrates the conversation flow. Uses Few-Shot instruction tuning to ensure the LLM consistently utilizes the Hybrid UI blocks for data-heavy responses.
 
 ---
 
-## 🚀 Deployment & Usage
+## 🚀 Deployment & Integration
 
-### 1. Environment Setup
-Create a `.env` file in the `backend/` directory:
-```env
-OPENROUTER_API_KEY=sk-or-v1-...
-ALLOWED_ORIGIN=https://your-portfolio-domain.com
-PINECONE_API_KEY=pcsk_...
-PINECONE_ENV=us-east-1
-PINECONE_INDEX_NAME=ashok-chatbot
+### 1. The "Single-Script" Integration
+To embed the widget in any website, add these three lines:
+
+```html
+<!-- Load the widget -->
+<script type="module" src="https://your-host.com/assets/widget.js"></script>
+
+<!-- Initialize with your branding -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.ChatWidget.init({
+            botName: "F.R.I.D.A.Y",
+            apiUrl: "https://your-backend.onrender.com/chat",
+            welcomeMessage: "Hi! Ask me about my projects or technical stack."
+        });
+    });
+</script>
 ```
 
-### 2. Install Dependencies
+### 2. Render Deployment (One-Click)
+1. Push this repository to GitHub.
+2. In the Render Dashboard, click **New +** -> **Blueprint**.
+3. Connect your repository. Render will automatically detect `render.yaml` and set up your backend and static site.
+4. Provide your `OPENROUTER_API_KEY` and `PINECONE_API_KEY` in the dashboard.
+
+---
+
+## 🛠️ Local Development
+
+### Backend Setup
 ```bash
+# Create venv and install
+python -m venv .venv
+source .venv/bin/activate  # .venv\Scripts\activate on Windows
 pip install -r backend/requirements.txt
-pip install -r backend/ingestion-service/requirements.txt
+
+# Start dev server
+uvicorn backend.app:app --reload
 ```
 
-### 3. Run Ingestion (Populate Database)
-You must run this at least once before querying the bot!
+### Frontend Setup
 ```bash
-python backend/ingestion-service/main.py
+cd frontend/widget
+npm install
+npm run dev # Access via http://localhost:5173/dev-test.html
 ```
-
-### 4. Start the API Server
-```bash
-uvicorn backend.app:app --host 0.0.0.0 --port 8000
-```
-
-*(Note: When deploying to Render, the start command is `uvicorn app:app --host 0.0.0.0 --port 8000` assuming the root directory is set to `backend`)*
 
 ---
 
-## 🔒 Security Note
-The API is currently locked by `ALLOWED_ORIGIN`. If you test locally, ensure your `.env` has `ALLOWED_ORIGIN=http://localhost` or disable the middleware in `app.py` during development!
+## 🔒 Security Configuration
+The API is currently locked by `ALLOWED_ORIGINS`. Update your `.env` or Render environment variables:
+```env
+ALLOWED_ORIGINS=https://your-portfolio-domain.com,http://localhost:5173
+```

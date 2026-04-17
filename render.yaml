@@ -20,13 +20,11 @@ services:
         sync: false
 
   # 2. React Static Site (Frontend Widget)
-  - type: static_site
+  - type: web
     name: portfolio-widget
-    runtime: node
-    region: ohio
-    plan: free
-    buildCommand: cd widget/frontend && npm.cmd install && npm.cmd run build
-    publishPath: widget/dist
+    runtime: static
+    buildCommand: cd frontend/widget && npm install && npm run build
+    staticPublishPath: frontend/dist
     headers:
       - path: /*
         name: Access-Control-Allow-Origin
