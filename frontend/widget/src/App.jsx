@@ -110,8 +110,16 @@ function TypingDots() {
 
 // ─── Widget App ──────────────────────────────────────────────────────────────
 
-// Dynamic session ID that persists per session
-const SESSION_ID = "sess_" + Math.random().toString(36).substring(2, 12)
+// Persistence: Get or create a session ID that lasts until the tab is closed
+const getSessionId = () => {
+  let id = sessionStorage.getItem('chat_session_id');
+  if (!id) {
+    id = "sess_" + Math.random().toString(36).substring(2, 12);
+    sessionStorage.setItem('chat_session_id', id);
+  }
+  return id;
+};
+const SESSION_ID = getSessionId();
 
 export default function App({ config = {} }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -133,7 +141,11 @@ export default function App({ config = {} }) {
   }, [isOpen, welcomeMessage])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Small delay allows complex A2UI blocks (grids) to finish layout before scrolling
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, loading])
 
   const sendMessage = async () => {
@@ -150,6 +162,14 @@ export default function App({ config = {} }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, session_id: SESSION_ID }),
       })
+      
+      if (res.status === 403) {
+        setMessages(prev => [
+          ...prev,
+          { sender: 'bot', text: '🛑 **Access Denied**: This website origin is not authorized to use this chat assistant. Please check your CORS settings.' }
+        ]);
+        return;
+      }
       
       const data = await res.json()
       setMessages(prev => [

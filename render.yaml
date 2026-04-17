@@ -20,9 +20,8 @@ services:
         sync: false
 
   # 2. React Static Site (Frontend Widget)
-  - type: web
+  - type: static
     name: portfolio-widget
-    runtime: static
     buildCommand: cd frontend/widget && npm install && npm run build
     staticPublishPath: frontend/dist
     headers:

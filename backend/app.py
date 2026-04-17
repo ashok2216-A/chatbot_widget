@@ -62,8 +62,8 @@ async def strict_origin_middleware(request: Request, call_next):
     origin = request.headers.get("origin")
     referer = request.headers.get("referer")
 
-    is_valid_origin = origin and any(origin.startswith(a) for a in ALLOWED_ORIGINS_LIST)
-    is_valid_referer = referer and any(referer.startswith(a) for a in ALLOWED_ORIGINS_LIST)
+    is_valid_origin = origin and any(origin.rstrip('/') == a.rstrip('/') for a in ALLOWED_ORIGINS_LIST)
+    is_valid_referer = referer and any(referer.rstrip('/') == a.rstrip('/') for a in ALLOWED_ORIGINS_LIST)
     is_allowed = is_valid_origin or is_valid_referer
 
     if not is_allowed:
@@ -116,10 +116,12 @@ def parse_a2ui_chunks(text: str):
                 pre_text = remaining_text[:start_idx]
                 if pre_text.strip(): chunks.append({"type": "text", "content": pre_text})
                 chunks.append({"type": "a2ui", "content": content})
+                # Check for any remaining text after the JSON block
                 remaining_text = remaining_text[end_idx+1:]
             except Exception:
                 pass
     
+    # 3. Final cleanup of remaining text
     if remaining_text.strip():
         chunks.append({"type": "text", "content": remaining_text})
             
