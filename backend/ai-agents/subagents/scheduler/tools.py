@@ -197,7 +197,7 @@ def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
 
         app = msal.ConfidentialClientApplication(
             client_id,
-            authority=f"https://login.microsoftonline.com/{tenant_id}",
+            authority="https://login.microsoftonline.com/consumers",  # personal MS accounts
             client_credential=client_secret,
             token_cache=cache,
         )
