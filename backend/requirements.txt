@@ -7,4 +7,4 @@ litellm>=1.60.0
 pydantic==2.12.5
 pinecone-client==5.0.1
 requests>=2.32.4
-python-multipart==0.0.12
+python-multipart==0.0.26
