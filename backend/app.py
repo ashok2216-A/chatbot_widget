@@ -36,8 +36,22 @@ runner = Runner(
 app = FastAPI()
 
 ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8000")
-# Clean up any accidental quotes or spaces from the env string
-ALLOWED_ORIGINS_LIST = [o.strip().replace('"', '').replace("'", "") for o in ALLOWED_ORIGINS_STR.split(",") if o.strip()]
+
+# Bulletproof Origin Parsing: Extract only the base (scheme + host) from any URL provided
+from urllib.parse import urlparse
+ALLOWED_ORIGINS_LIST = []
+for o in ALLOWED_ORIGINS_STR.split(","):
+    clean = o.strip().replace('"', '').replace("'", "").replace("[", "").replace("]", "")
+    if clean:
+        parsed = urlparse(clean)
+        # Reconstruct base origin: scheme://netloc (e.g. https://ashok2216-a.github.io)
+        base_origin = f"{parsed.scheme}://{parsed.netloc}"
+        if base_origin != "://":
+            ALLOWED_ORIGINS_LIST.append(base_origin)
+
+# Ensure internal health check is always allowed via localhost/render internal access
+# (Optional but recommended for stability)
+logger.info(f"HARDENED ALLOWED ORIGINS: {ALLOWED_ORIGINS_LIST}")
 
 # ── CORS must be added FIRST so preflight OPTIONS responses work correctly ──
 # The CORSMiddleware wraps everything: it handles OPTIONS itself and injects

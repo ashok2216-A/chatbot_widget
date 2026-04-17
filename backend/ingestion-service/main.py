@@ -53,51 +53,74 @@ def infer_category(text):
     if any(k in t for k in ["work", "experience", "responsibility", "position"]): return "experience"
     return "general"
 
-def ingest():
+def ingest(max_depth=2):
     from datetime import datetime
     today = datetime.now().strftime("%Y-%m-%d")
     
-    logger.info("Starting High-Precision Ingestion Pipeline...")
+    logger.info(f"Starting Elite Recursive Ingestion (Max Depth: {max_depth})...")
     index = get_index()
     existing_hashes = get_hashes()
 
-    for url in URLS:
-        logger.info(f"Scraping URL: {url}")
-        site_data = scrape(url)
-        text = site_data["text"]
-        title = site_data["title"]
-        
-        chunks = chunk_text(text)
-        vectors = []
+    # FIFO Queue for BFS crawling: (url, current_depth)
+    queue = [(url, 0) for url in URLS]
+    visited = set()
 
-        for chunk in chunks:
-            h = hash_text(chunk)
-            if h in existing_hashes:
-                logger.debug(f"Skipping up-to-date chunk (Hash: {h[:8]}...)")
+    while queue:
+        url, depth = queue.pop(0)
+        if url in visited or depth > max_depth:
+            continue
+        
+        visited.add(url)
+        logger.info(f"[{depth}/{max_depth}] Elite Crawling: {url}")
+        
+        try:
+            site_data = scrape(url)
+            text = site_data["text"]
+            title = site_data["title"]
+            links = site_data["links"]
+
+            # Add discovered links to queue for next depth
+            if depth < max_depth:
+                for link in links:
+                    if link not in visited:
+                        queue.append((link, depth + 1))
+
+            if not text:
                 continue
 
-            category = infer_category(chunk)
+            chunks = chunk_text(text)
+            vectors = []
 
-            vectors.append({
-                "id": h,
-                "values": embed_text(chunk),
-                "metadata": {
-                    "text": chunk,
-                    "source": url,
-                    "title": title,
-                    "category": category,
-                    "last_updated": today,
-                    "hash": h
-                }
-            })
-            save_hash(h)
+            for chunk in chunks:
+                h = hash_text(chunk)
+                if h in existing_hashes:
+                    logger.debug(f"Skipping up-to-date chunk (Hash: {h[:8]}...)")
+                    continue
 
-        if vectors:
-            logger.warning(f"Upserting {len(vectors)} new high-precision vectors into Pinecone...")
-            index.upsert(vectors)
-            logger.info("Sync completed successfully.")
-        else:
-            logger.info("All data is currently optimized and up to date.")
+                category = infer_category(chunk)
+
+                vectors.append({
+                    "id": h,
+                    "values": embed_text(chunk),
+                    "metadata": {
+                        "text": chunk,
+                        "source": url,
+                        "title": title,
+                        "category": category,
+                        "last_updated": today,
+                        "hash": h
+                    }
+                })
+                save_hash(h)
+
+            if vectors:
+                logger.warning(f"Upserting {len(vectors)} new vectors from '{title}' into Pinecone...")
+                index.upsert(vectors)
+            
+        except Exception as e:
+            logger.error(f"Failed to process {url}: {e}")
+
+    logger.info(f"Elite Sync complete. Processed {len(visited)} unique pages.")
 
 if __name__ == "__main__":
     try:
