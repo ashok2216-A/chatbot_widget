@@ -12,9 +12,9 @@ from root_prompt import ROOT_INSTRUCTION  # type: ignore
 _subagents_dir = os.path.join(os.path.dirname(__file__), "subagents")
 sys.path.insert(0, _subagents_dir)
 
-from rag.agent import rag_agent           # type: ignore
-from email.agent import email_agent       # type: ignore
-from scheduler.agent import scheduler_agent  # type: ignore
+from rag_agent.agent import rag_agent           # type: ignore
+from email_agent.agent import email_agent       # type: ignore
+from scheduler_agent.agent import scheduler_agent  # type: ignore
 
 # ── Root Coordinator Agent ─────────────────────────────────────────────────────
 root_agent = LlmAgent(

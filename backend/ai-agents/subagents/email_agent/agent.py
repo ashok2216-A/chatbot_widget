@@ -1,12 +1,8 @@
-import sys
-import os
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 
-# Expose siblings for direct import
-sys.path.insert(0, os.path.dirname(__file__))
-from prompt import EMAIL_INSTRUCTION  # type: ignore
-from tools import (        # type: ignore
+from .prompt import EMAIL_INSTRUCTION  # type: ignore
+from .tools import (        # type: ignore
     list_gmail_emails,
     get_gmail_email_detail,
     send_gmail_email,

@@ -72,7 +72,7 @@ uvicorn backend.app:app --reload
 ```bash
 cd frontend/widget
 npm install
-npm run dev # Access via http://localhost:5173/dev-test.html
+npm run dev # Access via http://localhost:5173/widget-test.html
 ```
 
 ---
