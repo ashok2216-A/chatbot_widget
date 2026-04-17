@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ashok Kumar — AI & Full-Stack Developer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="eyebrow">
+                <span class="dot"></span>
+                <span>Available for hire</span>
+            </div>
+            <h1>Ashok Kumar</h1>
+            <p class="subtitle">AI Engineer & Full-Stack Developer</p>
+        </header>
+
+        <main>
+            <section class="card">
+                <div class="card-tag">// about</div>
+                <h2>I build intelligent systems.</h2>
+                <p>Agentic AI pipelines, production-grade RAG systems, and highly responsive web applications — crafted with precision. This page demos a fully embeddable chat widget powered by FastAPI.</p>
+                <div class="cta-row">
+                    <div class="cta-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        Click the chat icon → bottom right
+                    </div>
+                </div>
+            </section>
+
+            <div class="tags-row">
+                <span class="tag">FastAPI</span>
+                <span class="tag">RAG</span>
+                <span class="tag">Kubernetes</span>
+                <span class="tag">Anthropic</span>
+                <span class="tag">Qdrant</span>
+                <span class="tag">n8n</span>
+                <span class="tag">Next.js</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- 1. Include the New React Widget Assets -->
+    <link rel="stylesheet" href="./src/index.css">
+
+    <script type="module">
+        // Import the main widget entry point from the project root
+        import './src/main.jsx';
+
+        // 2. Initialize the Widget with Custom Branding
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkReady = setInterval(() => {
+                if (window.ChatWidget) {
+                    clearInterval(checkReady);
+                    window.ChatWidget.init({
+                        apiUrl: "http://localhost:8000/chat", // Still points to backend
+                        botName: "F.R.I.D.A.Y",
+                        welcomeMessage: "Hi there! ⚡ I'm Ashok's AI agent. Ask me about his projects, stack, or how to work together."
+                    });
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
