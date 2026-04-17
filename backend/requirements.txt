@@ -2,7 +2,7 @@ fastapi==0.124.1
 uvicorn==0.34.0
 openai==2.24.0
 python-dotenv==1.0.1
-google-adk==1.30.0
+google-adk>=1.30.0
 litellm>=1.60.0
 pydantic==2.12.5
 pinecone-client==5.0.1
