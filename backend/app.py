@@ -35,8 +35,8 @@ runner = Runner(
 
 app = FastAPI()
 
-# Accept comma-separated origins from .env
-ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+# Accept comma-separated origins from .env. Default includes common dev ports.
+ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8000")
 ALLOWED_ORIGINS_LIST = [o.strip() for o in ALLOWED_ORIGINS_STR.split(",") if o.strip()]
 
 # ── CORS must be added FIRST so preflight OPTIONS responses work correctly ──
@@ -64,12 +64,13 @@ async def strict_origin_middleware(request: Request, call_next):
 
     is_valid_origin = origin and any(origin.startswith(a) for a in ALLOWED_ORIGINS_LIST)
     is_valid_referer = referer and any(referer.startswith(a) for a in ALLOWED_ORIGINS_LIST)
+    is_allowed = is_valid_origin or is_valid_referer
 
-    if not (is_valid_origin or is_valid_referer):
+    if not is_allowed:
         logger.warning(f"Blocked request from origin={origin} referer={referer}")
         return JSONResponse(
             status_code=403,
-            content={"error": "Access forbidden."}
+            content={"detail": "Access Denied"}
         )
 
     return await call_next(request)
@@ -111,7 +112,8 @@ def parse_a2ui_chunks(text: str):
             pre_text = remaining_text[:naked_match.start()]
             if pre_text.strip(): chunks.append({"type": "text", "content": pre_text})
             try:
-                chunks.append({"type": "a2ui", "content": json.loads(naked_match.group(1))})
+                content = json.loads(naked_match.group(1))
+                chunks.append({"type": "a2ui", "content": content})
                 remaining_text = remaining_text[naked_match.end():]
             except Exception:
                 pass
