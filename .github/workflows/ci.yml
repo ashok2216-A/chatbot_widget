@@ -26,6 +26,11 @@ jobs:
       - name: Syntax Check
         run: python -m compileall backend/
 
+      - name: Run Backend Tests
+        run: |
+          pip install pytest httpx
+          pytest backend/tests/
+
   frontend-validation:
     name: Frontend (Node.js 20)
     runs-on: ubuntu-latest
@@ -37,12 +42,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: widget/frontend/package-lock.json
+          cache-dependency-path: frontend/widget/package-lock.json
           
       - name: Install Dependencies
-        working-directory: ./widget/frontend
+        working-directory: ./frontend/widget
         run: npm install
         
+      - name: Run Frontend Tests
+        working-directory: ./frontend/widget
+        run: npm run test
+
       - name: Build Widget Bundle
-        working-directory: ./widget/frontend
+        working-directory: ./frontend/widget
         run: npm run build
