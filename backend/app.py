@@ -1,4 +1,12 @@
 from fastapi import FastAPI, Request
+import warnings
+# Suppress ADK experimental feature warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*PLUGGABLE_AUTH is enabled.*")
+
+import litellm
+# Suppress LiteLLM "Provider List" logs
+litellm.suppress_debug_info = True
+
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware

@@ -16,6 +16,7 @@ email_agent = LlmAgent(
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
         fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],
+        max_tokens=4000,
     ),
     description=(
         "Handles all email tasks: reading and sending messages via Gmail "
