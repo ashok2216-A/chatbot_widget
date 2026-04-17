@@ -193,11 +193,11 @@ async def chat(req: ChatRequest):
             new_message=content
         ):
             # ── Informational Logging (No message content) ────────────────────
-            if event.is_step_start():
-                 logger.info(f"→ Agent '{event.agent_name}' started processing...")
+            if event.author:
+                 logger.info(f"→ Agent '{event.author}' started processing...")
             
-            if event.is_tool_call():
-                for call in event.tool_calls:
+            if event.actions:
+                for call in event.actions:
                     logger.info(f"  [Tool Call] {call.name} with args: {json.dumps(call.args)}")
 
             if event.is_final_response():
