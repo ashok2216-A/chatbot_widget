@@ -1,120 +1,117 @@
 import { useState, useRef, useEffect } from 'react'
 import './index.css'
+import { A2UIRenderer } from './a2ui/renderer'
 
-// Constants are now handled dynamically via props in the App component
-
-export function AdaptiveView({ items, layout = 'grid', onCommand }) {
-  return (
-    <div className={`a2ui-adaptive-view ${layout}`}>
-      {items.map((item, i) => (
-        <div className="a2ui-card" key={i} style={{ animationDelay: `${i * 0.1}s` }}>
-          {Object.entries(item).map(([key, value]) => {
-            if (value === null || value === undefined) return null;
-            
-            const lowerKey = key.toLowerCase();
-            
-            // 1. Status Badges
-            if (lowerKey === 'status' || lowerKey === 'state') {
-              return (
-                <div key={key} className={`a2ui-status-badge ${String(value).toLowerCase()}`}>
-                  {String(value)}
-                </div>
-              );
-            }
-
-            // 2. Proficiency/Level Metrics
-            const isLevel = lowerKey === 'level' || lowerKey === 'proficiency';
-            if (isLevel) {
-              const sanitize = (val) => {
-                if (typeof val === 'number') return val;
-                const num = parseInt(String(val).match(/\d+/)?.[0]);
-                if (!isNaN(num)) return num;
-                const map = { expert: 95, advanced: 85, intermediate: 70, beginner: 40, basic: 40 };
-                return map[String(val).toLowerCase()] || 0;
-              };
-              const numericValue = sanitize(value);
-
-              return (
-                <div className="card-metric" key={key}>
-                  <div className="metric-bar-track">
-                    <div className="metric-bar-fill" style={{ '--target': `${numericValue}%` }} />
-                  </div>
-                  <span className="metric-val">{value}</span>
-                </div>
-              );
-            }
-
-            // 3. Selection Checkboxes (for multi-select tasks)
-            if (typeof value === 'boolean' || lowerKey === 'selected') {
-              return (
-                <div className="card-row checkbox" key={key}>
-                  <input type="checkbox" checked={!!value} readOnly />
-                  <span className="row-key">{key}</span>
-                </div>
-              );
-            }
-
-            // Default Row
-            return (
-              <div className="card-row" key={key}>
-                <span className="row-key">{key}</span>
-                <span className="row-value">{String(value)}</span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const COMPONENT_REGISTRY = {
-  data_view: AdaptiveView,
-};
-
-export function A2UIRenderer({ data, onCommand }) {
-  const componentKey = Object.keys(data).find(k => COMPONENT_REGISTRY[k]);
-  
-  if (!componentKey) {
-    return <div className="cw-message bot">{JSON.stringify(data)}</div>;
-  }
-
-  const Component = COMPONENT_REGISTRY[componentKey];
-  const content = data[componentKey];
-  
-  return (
-    <div className="a2ui-wrapper">
-      {content.text && <p className="a2ui-title">{content.text}</p>}
-      
-      <Component 
-        items={content.items || []} 
-        layout={content.layout || 'grid'} 
-        onCommand={onCommand}
-      />
-
-      {/* 4. Action Buttons */}
-      {content.actions && content.actions.length > 0 && (
-        <div className="a2ui-actions">
-          {content.actions.map((action, idx) => (
-            <button 
-              key={idx} 
-              className={`a2ui-btn ${action.variant || 'primary'}`}
-              onClick={() => onCommand(action.message)}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
+/**
+ * Lightweight Markdown → HTML renderer (zero dependencies).
+ * Handles: headings, bold, italic, inline code, fenced code blocks,
+ *          bullet lists, numbered lists, horizontal rules, links.
+ */
 function formatText(text) {
   if (!text) return '';
-  return text
-    .replace(/\n/g, '<br />')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  const lines = text.split('\n');
+  const output = [];
+  let inUl = false;
+  let inOl = false;
+  let inCode = false;
+  let codeLang = '';
+  let codeLines = [];
+
+  const closeList = () => {
+    if (inUl) { output.push('</ul>'); inUl = false; }
+    if (inOl) { output.push('</ol>'); inOl = false; }
+  };
+
+  const closeCode = () => {
+    if (inCode) {
+      const escaped = codeLines.join('\n')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      output.push(`<pre class="md-codeblock"><code class="lang-${codeLang}">${escaped}</code></pre>`);
+      codeLines = [];
+      codeLang = '';
+      inCode = false;
+    }
+  };
+
+  // Inline formatting (applied to non-code lines)
+  const inline = (str) => str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="md-link">$1</a>');
+
+  for (const raw of lines) {
+    const line = raw;
+
+    // ── Fenced code block toggle ──────────────────────────────────────
+    if (/^```/.test(line)) {
+      if (!inCode) {
+        closeList();
+        codeLang = line.replace(/^```/, '').trim() || 'text';
+        inCode = true;
+      } else {
+        closeCode();
+      }
+      continue;
+    }
+
+    if (inCode) { codeLines.push(line); continue; }
+
+    // ── Horizontal rule ───────────────────────────────────────────────
+    if (/^---+$/.test(line.trim()) || /^\*\*\*+$/.test(line.trim())) {
+      closeList();
+      output.push('<hr class="md-hr" />');
+      continue;
+    }
+
+    // ── ATX Headings (# ## ###) ───────────────────────────────────────
+    const h = line.match(/^(#{1,6})\s+(.+)/);
+    if (h) {
+      closeList();
+      const level = h[1].length;
+      output.push(`<h${level} class="md-h${level}">${inline(h[2])}</h${level}>`);
+      continue;
+    }
+
+    // ── Unordered list ────────────────────────────────────────────────
+    const ul = line.match(/^[\s]*[-*+]\s+(.+)/);
+    if (ul) {
+      if (inOl) { output.push('</ol>'); inOl = false; }
+      if (!inUl) { output.push('<ul class="md-ul">'); inUl = true; }
+      output.push(`<li class="md-li">${inline(ul[1])}</li>`);
+      continue;
+    }
+
+    // ── Ordered list ──────────────────────────────────────────────────
+    const ol = line.match(/^[\s]*\d+[.)]\s+(.+)/);
+    if (ol) {
+      if (inUl) { output.push('</ul>'); inUl = false; }
+      if (!inOl) { output.push('<ol class="md-ol">'); inOl = true; }
+      output.push(`<li class="md-li">${inline(ol[1])}</li>`);
+      continue;
+    }
+
+    // ── Blank line ────────────────────────────────────────────────────
+    if (line.trim() === '') {
+      closeList();
+      output.push('<br />');
+      continue;
+    }
+
+    // ── Normal paragraph line ─────────────────────────────────────────
+    closeList();
+    output.push(`<span class="md-line">${inline(line)}</span><br />`);
+  }
+
+  closeList();
+  closeCode();
+
+  return output.join('\n');
 }
 
 function Message({ msg, onCommand }) {
