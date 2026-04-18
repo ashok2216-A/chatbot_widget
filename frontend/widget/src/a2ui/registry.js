@@ -4,6 +4,7 @@ import {
   A2Button, A2CheckBox, A2TextField, A2Slider, A2DateTimeInput, A2ChoicePicker,
   A2Tabs, A2Modal, A2Navigation,
 } from './components';
+import { A2Chart } from './charts';
 
 /**
  * Maps component name strings (from the LLM JSON schema) to React components.
@@ -44,4 +45,6 @@ export const COMPONENT_REGISTRY = {
   modal:         A2Modal,
   navigation:    A2Navigation,
   nav:           A2Navigation,
+  // Charts
+  chart:         A2Chart,
 };

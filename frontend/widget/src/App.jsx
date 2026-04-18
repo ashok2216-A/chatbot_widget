@@ -171,7 +171,7 @@ export default function App({ config = {} }) {
       localStorage.setItem('cw_theme', next)
       
       // Reset color customizations that conflict with standard theme switching
-      setCustomBg('');         localStorage.removeItem('cw_bg')
+      setCustomMsgText('');    localStorage.removeItem('cw_msg_text')
       setCustomUserBubble(''); localStorage.removeItem('cw_usr_bubble')
       setCustomBotBubble('');  localStorage.removeItem('cw_bot_bubble')
       setCustomHeaderBg('');   localStorage.removeItem('cw_header_bg')
@@ -196,7 +196,7 @@ export default function App({ config = {} }) {
   const [showCustomizer, setShowCustomizer] = useState(false)
   const [customLogo,      setCustomLogo]      = useState(() => localStorage.getItem('cw_logo')       || '')
   const [customAccent,    setCustomAccent]    = useState(() => localStorage.getItem('cw_accent')     || '')
-  const [customBg,        setCustomBg]        = useState(() => localStorage.getItem('cw_bg')         || '')
+  const [customMsgText,   setCustomMsgText]   = useState(() => localStorage.getItem('cw_msg_text')   || '')
   const [customUserBubble,setCustomUserBubble]= useState(() => localStorage.getItem('cw_usr_bubble') || '')
   const [customBotBubble, setCustomBotBubble] = useState(() => localStorage.getItem('cw_bot_bubble') || '')
   const [customHeaderBg,   setCustomHeaderBg]   = useState(() => localStorage.getItem('cw_header_bg')  || '')
@@ -240,7 +240,7 @@ export default function App({ config = {} }) {
   const resetCustomizations = () => {
     setCustomAccent('');     localStorage.removeItem('cw_accent')
     setCustomLogo('');       localStorage.removeItem('cw_logo')
-    setCustomBg('');         localStorage.removeItem('cw_bg')
+    setCustomMsgText('');    localStorage.removeItem('cw_msg_text')
     setCustomUserBubble(''); localStorage.removeItem('cw_usr_bubble')
     setCustomBotBubble('');  localStorage.removeItem('cw_bot_bubble')
     setCustomHeaderBg('');   localStorage.removeItem('cw_header_bg')
@@ -250,24 +250,11 @@ export default function App({ config = {} }) {
   }
 
   // All custom CSS variable overrides applied inline to the container
-  const bgIsLight = customBg ? isLightColor(customBg) : false
+
   
   const customStyle = {
     ...(customAccent     && { '--cw-accent': customAccent, '--cw-accent-glow': customAccent + '55' }),
-    ...(customBg         && { 
-      '--cw-bg': customBg, 
-      '--cw-surface': customBg,
-      // Contrast flip for text when custom background is used
-      ...(bgIsLight ? {
-        '--cw-text': '#1A1A2E',
-        '--cw-text-dim': 'rgba(26,26,46,0.7)',
-        '--cw-border': 'rgba(0,0,0,0.1)',
-        '--cw-border-hi': 'rgba(0,0,0,0.15)',
-      } : {
-        '--cw-text': '#DDDDF0',
-        '--cw-text-dim': 'rgba(221,221,240,0.7)',
-      })
-    }),
+    ...(customMsgText    && { '--cw-text': customMsgText, '--cw-text-dim': customMsgText + 'cc' }),
     ...(customUserBubble && { '--cw-msg-usr-bg': customUserBubble }),
     ...(customBotBubble  && { '--cw-msg-bot-bg': customBotBubble }),
     ...(customHeaderBg   && { '--cw-header-bg': customHeaderBg }),
@@ -454,16 +441,16 @@ export default function App({ config = {} }) {
               <p className="cw-cust-label">Bubble Colours</p>
               <div className="cw-cust-colour-rows">
                 <div className="cw-cust-colour-row">
-                  <span className="cw-cust-colour-name">Background</span>
+                  <span className="cw-cust-colour-name">Message text</span>
                   <label className="cw-cust-colour-picker">
                     <input type="color"
-                      value={customBg || (theme === 'light' ? '#F5F5FA' : '#0C0C12')}
-                      onChange={e => { setCustomBg(e.target.value); localStorage.setItem('cw_bg', e.target.value) }}
+                      value={customMsgText || (theme === 'light' ? '#333333' : '#FFFFFF')}
+                      onChange={e => { setCustomMsgText(e.target.value); localStorage.setItem('cw_msg_text', e.target.value) }}
                     />
-                    <span className="cw-cust-colour-preview" style={{ background: customBg || (theme === 'light' ? '#F5F5FA' : '#0C0C12') }} />
-                    <span className="cw-cust-colour-hex">{customBg || 'default'}</span>
+                    <span className="cw-cust-colour-preview" style={{ background: customMsgText || (theme === 'light' ? '#333333' : '#FFFFFF') }} />
+                    <span className="cw-cust-colour-hex">{customMsgText || 'default'}</span>
                   </label>
-                  {customBg && <button className="cw-cust-colour-clear" onClick={() => { setCustomBg(''); localStorage.removeItem('cw_bg') }}>✕</button>}
+                  {customMsgText && <button className="cw-cust-colour-clear" onClick={() => { setCustomMsgText(''); localStorage.removeItem('cw_msg_text') }}>✕</button>}
                 </div>
 
                 <div className="cw-cust-colour-row">
