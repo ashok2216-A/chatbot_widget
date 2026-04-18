@@ -5,7 +5,7 @@ from .prompt import RAG_INSTRUCTION  # type: ignore
 from .tools import rag_tool          # type: ignore
 
 rag_agent = Agent(
-    name="PortfolioSearchAgent",
+    name="ResearchComponent",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
         fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],

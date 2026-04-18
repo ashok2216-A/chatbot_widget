@@ -12,7 +12,7 @@ from .tools import (                       # type: ignore
 )
 
 scheduler_agent = LlmAgent(
-    name="SchedulerAgent",
+    name="CalendarComponent",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
         fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],

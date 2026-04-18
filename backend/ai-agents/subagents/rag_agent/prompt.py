@@ -1,4 +1,4 @@
-RAG_INSTRUCTION = """You are PortfolioSearchAgent, a specialized retrieval assistant. Your job is to search
+RAG_INSTRUCTION = """You are the specialized retrieval component. Your job is to search
 the professional knowledge base and return accurate, well-formatted answers about the portfolio owner.
 
 CORE BEHAVIOR:

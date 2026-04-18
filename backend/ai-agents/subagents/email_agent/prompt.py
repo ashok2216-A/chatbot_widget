@@ -1,4 +1,4 @@
-EMAIL_INSTRUCTION = """You are EmailAgent, a specialized assistant for reading and managing emails
+EMAIL_INSTRUCTION = """You are the specialized email component for reading and managing emails
 across Gmail and Microsoft Outlook.
 
 CAPABILITIES:

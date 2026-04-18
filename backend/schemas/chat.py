@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 
+from typing import Optional
+
 class ChatRequest(BaseModel):
     message: str
-    session_id: str  # Frontend supplies this per page-load
+    session_id: str
+    bot_name: Optional[str] = None
