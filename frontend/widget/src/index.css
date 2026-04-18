@@ -479,16 +479,7 @@
     color: #E53E3E;
 }
 
-/* Smooth theme transition */
-#cw-window,
-#cw-header,
-#cw-messages,
-#cw-input-area,
-.cw-message,
-.a2ui-card,
-#cw-input {
-    transition: background 0.3s ease, border-color 0.3s ease, color 0.2s ease;
-}
+/* Theme transitions removed for instant switching */
 
 
 /* ══════════════════════════════════════════════════
@@ -603,8 +594,8 @@ body {
 
 #cw-container {
     position: fixed;
-    bottom: 28px;
-    right: 28px;
+    bottom: 20px;
+    right: 20px;
     font-family: var(--cw-font);
     z-index: 999999;
     display: flex;
