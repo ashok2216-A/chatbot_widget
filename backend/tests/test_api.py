@@ -7,7 +7,8 @@ from unittest.mock import patch, MagicMock
 
 # Ensure we can import from the parent backend folder
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from app import app, parse_a2ui_chunks
+from app import app
+from utils.a2ui import parse_a2ui_chunks
 
 client = TestClient(app)
 
@@ -41,7 +42,7 @@ def test_health_check():
     assert response.status_code == 200
     assert response.json() == {"status": "alive"}
 
-@patch("app.runner.run_async")
+@patch("routes.chat.runner.run_async")
 def test_chat_endpoint_mocked(mock_run):
     # Setup mock event
     mock_event = MagicMock()

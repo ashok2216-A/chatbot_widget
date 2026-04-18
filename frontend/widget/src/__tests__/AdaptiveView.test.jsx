@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import React from 'react';
-import { A2UIRenderer } from '../App';
+import { A2UIRenderer } from '../a2ui/renderer';
 
 describe('A2UIRenderer Component (Hybrid UI)', () => {
   const mockData = {
