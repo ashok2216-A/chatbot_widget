@@ -610,6 +610,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    /* In dark mode, ensure user bubble maps to current accent color if no explicit bubble color is set */
+    --cw-msg-usr-bg: var(--cw-accent);
 }
 
 /* ── Toggle ── */
@@ -822,7 +824,7 @@ body {
 }
 
 .cw-message.bot {
-    background: var(--cw-surface);
+    background: var(--cw-msg-bot-bg, var(--cw-surface));
     color: var(--cw-text);
     align-self: flex-start;
     border-bottom-left-radius: 4px;
