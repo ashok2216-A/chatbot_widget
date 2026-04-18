@@ -83,20 +83,21 @@ export function A2Text({ value = '', variant = 'body' }) {
   return <Tag className={`a2ui-text a2ui-text-${variant}`}>{value}</Tag>;
 }
 
-export function A2Image({ src, alt = 'Image', width = '100%', rounded = true }) {
+export function A2Image({ src, alt = 'Image', width, height, rounded = true, className = '' }) {
   const [error, setError] = useState(false);
-  if (error) return (
-    <div className="a2ui-image-error">
-      <SvgIcon name="image" size={24} />
-      <span>Image unavailable</span>
+  
+  if (error || !src) return (
+    <div className={`a2ui-image-error-compact ${rounded ? 'rounded' : ''}`} style={{ width: width || 40, height: height || 40 }}>
+      <SvgIcon name="image" size={16} />
     </div>
   );
+
   return (
     <img
-      className={`a2ui-image ${rounded ? 'rounded' : ''}`}
+      className={`a2ui-image ${rounded ? 'rounded' : ''} ${className}`}
       src={src}
       alt={alt}
-      style={{ width }}
+      style={{ width: width || '100%', height: height || 'auto', objectFit: 'contain' }}
       onError={() => setError(true)}
     />
   );
@@ -172,44 +173,56 @@ export function A2Button({ label = 'Action', message, variant = 'primary', icon,
   );
 }
 
-export function A2CheckBox({ label = 'Option', checked: initialChecked = false, message_on, message_off, onCommand }) {
+export function A2CheckBox({ label = 'Option', checked: initialChecked = false, submit_label = 'Confirm', message_on, message_off, onCommand }) {
   const [checked, setChecked] = useState(!!initialChecked);
-  const toggle = () => {
-    const next = !checked;
-    setChecked(next);
-    const msg = next ? message_on : message_off;
+  
+  const submit = () => {
+    const msg = checked ? message_on : message_off;
     if (msg) onCommand(msg);
   };
+  
   return (
-    <label className="a2ui-checkbox">
-      <div className={`a2ui-checkbox-box ${checked ? 'checked' : ''}`} onClick={toggle}>
-        {checked && <SvgIcon name="check" size={12} />}
-      </div>
-      <span className="a2ui-checkbox-label">{label}</span>
-    </label>
+    <div className="a2ui-textfield-row" style={{ alignItems: 'center' }}>
+      <label className="a2ui-checkbox" style={{ flex: 1, cursor: 'pointer' }}>
+        <div className={`a2ui-checkbox-box ${checked ? 'checked' : ''}`} onClick={() => setChecked(!checked)}>
+          {checked && <SvgIcon name="check" size={12} />}
+        </div>
+        <span className="a2ui-checkbox-label" onClick={() => setChecked(!checked)}>{label}</span>
+      </label>
+      <button className="a2ui-btn a2ui-btn-v3 primary sm" onClick={submit}>{submit_label}</button>
+    </div>
   );
 }
 
-export function A2TextField({ label, placeholder = 'Type here…', submit_label = 'Submit', onCommand }) {
-  const [value, setValue] = useState('');
+export function A2TextField({ label, placeholder = 'Type here…', value: initialValue = '', multiline = false, submit_label = 'Save', onCommand }) {
+  const [value, setValue] = useState(initialValue);
   const submit = () => {
     if (value.trim()) {
       onCommand(`${label ? label + ': ' : ''}${value.trim()}`);
-      setValue('');
     }
   };
   return (
     <div className="a2ui-textfield">
       {label && <span className="a2ui-input-label">{label}</span>}
-      <div className="a2ui-textfield-row">
-        <input
-          className="a2ui-input"
-          type="text"
-          placeholder={placeholder}
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && submit()}
-        />
+      <div className={`a2ui-textfield-row ${multiline ? 'multiline-row' : ''}`}>
+        {multiline ? (
+          <textarea
+            className="a2ui-input a2ui-textarea"
+            placeholder={placeholder}
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            rows={4}
+          />
+        ) : (
+          <input
+            className="a2ui-input"
+            type="text"
+            placeholder={placeholder}
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && submit()}
+          />
+        )}
         <button className="a2ui-btn a2ui-btn-v3 primary sm" onClick={submit}>{submit_label}</button>
       </div>
     </div>
@@ -269,12 +282,13 @@ export function A2ChoicePicker({ label, options = [], multi = false, submit_labe
       setSelected(prev => prev.includes(opt) ? prev.filter(x => x !== opt) : [...prev, opt]);
     } else {
       setSelected(opt);
-      onCommand(`${label ? label + ': ' : ''}${opt}`);
+      // Intentionally removed auto-send, requiring the submit button
     }
   };
 
-  const submitMulti = () => {
-    if (selected.length) onCommand(`${label ? label + ': ' : ''}${selected.join(', ')}`);
+  const submitPicker = () => {
+    if (multi && selected.length) onCommand(`${label ? label + ': ' : ''}${selected.join(', ')}`);
+    else if (!multi && selected) onCommand(`${label ? label + ': ' : ''}${selected}`);
   };
 
   return (
@@ -294,9 +308,11 @@ export function A2ChoicePicker({ label, options = [], multi = false, submit_labe
           );
         })}
       </div>
-      {multi && selected.length > 0 && (
-        <button className="a2ui-btn a2ui-btn-v3 primary sm" style={{ marginTop: 8 }} onClick={submitMulti}>
-          {submit_label} ({selected.length})
+      
+      {/* Show submit button only if a choice has been made */}
+      {((multi && selected.length > 0) || (!multi && selected)) && (
+        <button className="a2ui-btn a2ui-btn-v3 primary sm" style={{ marginTop: 8 }} onClick={submitPicker}>
+          {submit_label} {multi ? `(${selected.length})` : ''}
         </button>
       )}
     </div>

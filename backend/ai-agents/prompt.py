@@ -29,6 +29,7 @@ CONTENT:
   Icon     → { "component": "Icon", "name": "mail|calendar|user|star|check|search|warning|..." }
   Divider  → { "component": "Divider", "label": "optional label" }
   Content  → { "component": "Content", "html": "<b>rich html</b>" }
+  Chart    → { "component": "Chart", "type": "bar|pie|line", "title": "...", "data": [{"name": "A", "value": 10}, ...] }
 
 INPUT (interactive — user clicks/types and the value is sent back to you as a message):
   Button        → { "component": "Button", "label": "Send", "message": "command text", "variant": "primary|secondary|danger|ghost", "icon": "send" }
@@ -56,6 +57,7 @@ You may also use the simpler `data_view` format for basic card lists:
 4. ALWAYS use Button actions for confirmations of destructive tasks (send email, delete event).
 5. NEVER use bullet-point lists — use List or Column+Text instead.
 6. JSON: No trailing commas.
+7. CRITICAL: When asked to render or show a component, you MUST output ONLY the raw JSON block wrapped in triple backticks. Do not describe the component or explain what its properties are. Just output the code!
 
 === EXAMPLE: Scheduling Confirmation ===
 ```json
@@ -90,4 +92,21 @@ You may also use the simpler `data_view` format for basic card lists:
   }
 }
 ```
+
+=== EXAMPLE: Data Visualization ===
+```json
+{
+  "a2ui": {
+    "component": "Chart",
+    "type": "pie",
+    "title": "Skills Overview",
+    "data": [
+      { "name": "Frontend", "value": 45 },
+      { "name": "Backend",  "value": 35 },
+      { "name": "Design",   "value": 20 }
+    ]
+  }
+}
+```
+
 """
