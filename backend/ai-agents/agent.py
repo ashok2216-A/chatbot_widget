@@ -28,7 +28,7 @@ MODEL_FALLBACKS = [
 
 # ── Root Coordinator Agent ─────────────────────────────────────────────────────
 root_agent = LlmAgent(
-    name="FRIDAY",
+    name="RootAssistant",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
         fallbacks=MODEL_FALLBACKS,
@@ -36,8 +36,8 @@ root_agent = LlmAgent(
         temperature=0.5,
     ),
     description=(
-        "Central coordinator. Routes portfolio queries to PortfolioSearchAgent, "
-        "email tasks to EmailAgent, and calendar tasks to SchedulerAgent."
+        "Central coordinator. Routes portfolio and technical queries to the research component, "
+        "email tasks to the email component, and calendar tasks to the calendar component."
     ),
     instruction=ROOT_INSTRUCTION,
     sub_agents=[

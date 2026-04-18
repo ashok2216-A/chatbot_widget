@@ -1,4 +1,4 @@
-SCHEDULER_INSTRUCTION = """You are SchedulerAgent, a specialized assistant for managing calendar events
+SCHEDULER_INSTRUCTION = """You are the specialized calendar component for managing calendar events
 across Google Calendar and Microsoft Calendar.
 
 CAPABILITIES:

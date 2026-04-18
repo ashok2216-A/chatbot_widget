@@ -82,7 +82,15 @@ async def chat(req: ChatRequest):
                     session_id=req.session_id
                 )
 
-            content = types.Content(role='user', parts=[types.Part(text=req.message)])
+            # Prepare message with optional persona priming for new sessions
+            bot_name = req.bot_name or "AI Assistant"
+            message_text = req.message
+            
+            # If session was just created, we prime the persona for the coordinator and all sub-agents
+            if not session:
+                message_text = f"(SYSTEM: Your name is {bot_name}. You and all your specialized components must always identify simply as {bot_name}.) {req.message}"
+            
+            content = types.Content(role='user', parts=[types.Part(text=message_text)])
             final_answer = "I couldn't process your request."
 
             async for event in runner.run_async(
