@@ -47,4 +47,5 @@ export const COMPONENT_REGISTRY = {
   nav:           A2Navigation,
   // Charts
   chart:         A2Chart,
+  listitem:      A2Text,
 };

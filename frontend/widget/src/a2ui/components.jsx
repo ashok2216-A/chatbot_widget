@@ -77,18 +77,19 @@ export function A2List({ children = [], ordered = false, renderNode }) {
 
 // ─── CONTENT COMPONENTS ──────────────────────────────────────────────────────
 
-export function A2Text({ value = '', variant = 'body' }) {
+export function A2Text({ value, text, label, variant = 'body' }) {
+  const val = value || text || label || '';
   const tagMap = { heading: 'h3', subheading: 'h4', body: 'p', caption: 'span', label: 'span', code: 'code' };
   const Tag = tagMap[variant] || 'p';
-  return <Tag className={`a2ui-text a2ui-text-${variant}`}>{value}</Tag>;
+  return <Tag className={`a2ui-text a2ui-text-${variant}`}>{val}</Tag>;
 }
 
 export function A2Image({ src, alt = 'Image', width, height, rounded = true, className = '' }) {
   const [error, setError] = useState(false);
   
   if (error || !src) return (
-    <div className={`a2ui-image-error-compact ${rounded ? 'rounded' : ''}`} style={{ width: width || 40, height: height || 40 }}>
-      <SvgIcon name="image" size={16} />
+    <div className={`a2ui-image-error-compact ${rounded ? 'rounded' : ''}`} style={{ width: width || '100%', height: height || 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--cw-surface-2)' }}>
+      <SvgIcon name="image" size={32} style={{ opacity: 0.3 }} />
     </div>
   );
 
@@ -171,7 +172,10 @@ export function A2Button({ label = 'Action', message, variant = 'primary', icon,
       if (url.startsWith('/auth/login')) {
         const sessionId = sessionStorage.getItem('chat_session_id') || 'guest';
         const connector = url.includes('?') ? '&' : '?';
-        finalUrl = `${window.location.protocol}//${window.location.host}${url}${connector}session_id=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`;
+        const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        // Ensure we don't have double slashes if backendBase ends with /
+        const base = backendBase.endsWith('/') ? backendBase.slice(0, -1) : backendBase;
+        finalUrl = `${base}${url}${connector}session_id=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`;
       }
 
       const width = 600;

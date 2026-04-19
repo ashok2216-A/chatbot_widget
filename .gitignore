@@ -12,6 +12,10 @@ credentials.json
 token.json
 msal_token_cache.json
 
+# Databases & Data
+*.db
+backend/data/
+
 
 # Node / Frontend
 node_modules/

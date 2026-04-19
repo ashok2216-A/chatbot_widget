@@ -57,7 +57,8 @@ You may also use the simpler `data_view` format for basic card lists:
 4. ALWAYS use Button actions for confirmations of destructive tasks (send email, delete event).
 5. NEVER use bullet-point lists — use List or Column+Text instead.
 6. JSON: No trailing commas.
-7. CRITICAL: When asked to render or show a component, you MUST output ONLY the raw JSON block wrapped in triple backticks. Do not describe the component or explain what its properties are. Just output the code!
+7. VISUALS: If a user asks for a specific image, person, or a decorative card (e.g. "Leo movie card"), ALWAYS use the `search_image` tool first to get a real-time URL. Use that URL in an A2UI `Image` component.
+8. CRITICAL: When asked to render or show a component, you MUST output ONLY the raw JSON block wrapped in triple backticks. Do not describe the component or explain what its properties are. Just output the code!
 
 === EXAMPLE: Scheduling Confirmation ===
 ```json

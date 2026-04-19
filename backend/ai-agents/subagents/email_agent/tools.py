@@ -34,11 +34,24 @@ logger = get_logger("Email_Tools")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  GMAIL
+#  GENERAL / AUTH
 # ══════════════════════════════════════════════════════════════════════════════
 
-from core.auth_db import get_token
+from core.auth_db import get_token, delete_tokens
 from core.context import current_session_id
+
+def disconnect_accounts() -> str:
+    """Disconnects all current OAuth accounts (Google/Microsoft) from this session.
+    Use this when the user says 'logout', 'disconnect', or 'switch account'.
+    """
+    session_id = current_session_id.get()
+    delete_tokens(session_id)
+    logger.info(f"Session {session_id} disconnected all accounts.")
+    return "All accounts disconnected successfully. The user can now connect a different account."
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GMAIL
+# ══════════════════════════════════════════════════════════════════════════════
 
 def _get_gmail_service():
     """Returns (service, error_message). Fetching from DB for multi-tenant support."""

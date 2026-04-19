@@ -16,10 +16,15 @@ export function A2UINodeRenderer({ node, onCommand }) {
   if (node.data_view) return null; // Handled by parent
 
   const componentName = (node.component || '').toLowerCase();
-  const Component = COMPONENT_REGISTRY[componentName];
+  let Component = COMPONENT_REGISTRY[componentName];
+
+  // Robustness: If no component found but a 'value' is present, default to Text
+  if (!Component && node.value) {
+    Component = COMPONENT_REGISTRY.text;
+  }
 
   if (!Component) {
-    // Unknown component: render as a labeled text row
+    // True unknown/empty node: render as a labeled debug tag
     return (
       <div className="a2ui-unknown-node">
         <span className="a2ui-unknown-tag">[{node.component || '?'}]</span>

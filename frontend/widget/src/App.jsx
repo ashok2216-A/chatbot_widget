@@ -10,31 +10,27 @@ import { A2UIRenderer } from './a2ui/renderer'
 function formatText(text) {
   if (!text) return '';
 
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   const output = [];
-  let inUl = false;
-  let inOl = false;
-  let inCode = false;
-  let codeLang = '';
+  let currentBlock = null; // 'ul', 'ol', 'code', 'blockquote', 'p'
   let codeLines = [];
+  let codeLang = '';
 
-  const closeList = () => {
-    if (inUl) { output.push('</ul>'); inUl = false; }
-    if (inOl) { output.push('</ol>'); inOl = false; }
-  };
-
-  const closeCode = () => {
-    if (inCode) {
+  const closeBlock = () => {
+    if (currentBlock === 'ul') output.push('</ul>');
+    if (currentBlock === 'ol') output.push('</ol>');
+    if (currentBlock === 'blockquote') output.push('</blockquote>');
+    if (currentBlock === 'p') output.push('</p>');
+    if (currentBlock === 'code') {
       const escaped = codeLines.join('\n')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       output.push(`<pre class="md-codeblock"><code class="lang-${codeLang}">${escaped}</code></pre>`);
       codeLines = [];
       codeLang = '';
-      inCode = false;
     }
+    currentBlock = null;
   };
 
-  // Inline formatting (applied to non-code lines)
   const inline = (str) => str
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
@@ -45,72 +41,95 @@ function formatText(text) {
     .replace(/_(.+?)_/g, '<em>$1</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="md-link">$1</a>');
 
-  for (const raw of lines) {
-    const line = raw;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
 
-    // ── Fenced code block toggle ──────────────────────────────────────
-    if (/^```/.test(line)) {
-      if (!inCode) {
-        closeList();
-        codeLang = line.replace(/^```/, '').trim() || 'text';
-        inCode = true;
+    // ── Code Blocks ──
+    if (/^```/.test(trimmed)) {
+      if (currentBlock !== 'code') {
+        closeBlock();
+        codeLang = trimmed.replace(/^```/, '').trim() || 'text';
+        currentBlock = 'code';
       } else {
-        closeCode();
+        closeBlock();
       }
       continue;
     }
-
-    if (inCode) { codeLines.push(line); continue; }
-
-    // ── Horizontal rule ───────────────────────────────────────────────
-    if (/^---+$/.test(line.trim()) || /^\*\*\*+$/.test(line.trim())) {
-      closeList();
-      output.push('<hr class="md-hr" />');
+    if (currentBlock === 'code') {
+      codeLines.push(line);
       continue;
     }
 
-    // ── ATX Headings (# ## ###) ───────────────────────────────────────
+    // ── Blank Lines ──
+    if (trimmed === '') {
+      closeBlock();
+      continue;
+    }
+
+    // ── Headings ──
     const h = line.match(/^(#{1,6})\s+(.+)/);
     if (h) {
-      closeList();
+      closeBlock();
       const level = h[1].length;
       output.push(`<h${level} class="md-h${level}">${inline(h[2])}</h${level}>`);
       continue;
     }
 
-    // ── Unordered list ────────────────────────────────────────────────
+    // ── Horizontal Rules ──
+    if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+      closeBlock();
+      output.push('<hr class="md-hr" />');
+      continue;
+    }
+
+    // ── Blockquotes ──
+    if (/^>\s?/.test(trimmed)) {
+      if (currentBlock !== 'blockquote') {
+        closeBlock();
+        output.push('<blockquote class="md-blockquote">');
+        currentBlock = 'blockquote';
+      }
+      output.push(inline(trimmed.replace(/^>\s?/, '')) + '<br/>');
+      continue;
+    }
+
+    // ── Unordered Lists ──
     const ul = line.match(/^[\s]*[-*+]\s+(.+)/);
     if (ul) {
-      if (inOl) { output.push('</ol>'); inOl = false; }
-      if (!inUl) { output.push('<ul class="md-ul">'); inUl = true; }
+      if (currentBlock !== 'ul') {
+        closeBlock();
+        output.push('<ul class="md-ul">');
+        currentBlock = 'ul';
+      }
       output.push(`<li class="md-li">${inline(ul[1])}</li>`);
       continue;
     }
 
-    // ── Ordered list ──────────────────────────────────────────────────
+    // ── Ordered Lists ──
     const ol = line.match(/^[\s]*\d+[.)]\s+(.+)/);
     if (ol) {
-      if (inUl) { output.push('</ul>'); inUl = false; }
-      if (!inOl) { output.push('<ol class="md-ol">'); inOl = true; }
+      if (currentBlock !== 'ol') {
+        closeBlock();
+        output.push('<ol class="md-ol">');
+        currentBlock = 'ol';
+      }
       output.push(`<li class="md-li">${inline(ol[1])}</li>`);
       continue;
     }
 
-    // ── Blank line ────────────────────────────────────────────────────
-    if (line.trim() === '') {
-      closeList();
-      output.push('<br />');
-      continue;
+    // ── Paragraphs ──
+    if (currentBlock !== 'p') {
+      closeBlock();
+      output.push('<p class="md-paragraph">');
+      currentBlock = 'p';
+    } else {
+      output.push('<br/>');
     }
-
-    // ── Normal paragraph line ─────────────────────────────────────────
-    closeList();
-    output.push(`<span class="md-line">${inline(line)}</span><br />`);
+    output.push(inline(line));
   }
 
-  closeList();
-  closeCode();
-
+  closeBlock();
   return output.join('\n');
 }
 
