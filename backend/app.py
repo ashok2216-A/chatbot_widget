@@ -83,7 +83,7 @@ app.add_middleware(
 
 @app.middleware("http")
 async def strict_origin_middleware(request: Request, call_next):
-    if request.method == "OPTIONS" or request.url.path == "/health":
+    if request.method == "OPTIONS" or request.url.path == "/health" or request.url.path.startswith("/auth"):
         return await call_next(request)
 
     origin = request.headers.get("origin")

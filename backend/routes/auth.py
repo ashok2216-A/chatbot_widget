@@ -23,18 +23,23 @@ oauth.register(
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={'scope': 'openid email profile https://www.googleapis.com/auth/gmail.modify'}
+    client_kwargs={
+        'scope': 'openid email profile https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar',
+        'token_endpoint_auth_method': 'client_secret_post'
+    }
 )
 
 # ── Microsoft Setup ──────────────────────────────────────────────────────────
 # Using 'common' endpoint for multi-tenant / personal accounts
 oauth.register(
     name='microsoft',
-    client_id=os.getenv("MS_CLIENT_ID"),
-    client_secret=os.getenv("MS_CLIENT_SECRET"),
-    authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
-    access_token_url='https://login.microsoftonline.com/common/oauth2/v2.0/token',
-    client_kwargs={'scope': 'openid email profile https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send'}
+    client_id=os.getenv("AZURE_CLIENT_ID"),
+    client_secret=os.getenv("AZURE_CLIENT_SECRET"),
+    server_metadata_url='https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Calendars.ReadWrite',
+        'token_endpoint_auth_method': 'client_secret_post'
+    }
 )
 
 @router.get("/login")
@@ -57,7 +62,8 @@ async def login(request: Request, provider: str, session_id: str):
     redirect_uri = request.url_for('auth_callback')
     
     client = oauth.create_client(provider)
-    return await client.authorize_redirect(request, str(redirect_uri), state=state)
+    # Add prompt='select_account' for Google/MS to force the account picker
+    return await client.authorize_redirect(request, str(redirect_uri), state=state, prompt='select_account')
 
 @router.get("/callback")
 async def auth_callback(request: Request):

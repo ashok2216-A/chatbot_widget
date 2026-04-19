@@ -575,10 +575,22 @@
 }
 
 /* Normal prose lines */
-.md-line {
+.md-paragraph {
     font-size: 13px;
     color: var(--cw-text-dim);
     line-height: 1.55;
+    margin-bottom: 12px;
+}
+.md-paragraph:last-child {
+    margin-bottom: 0;
+}
+
+.md-blockquote {
+    border-left: 3px solid var(--cw-accent);
+    padding-left: 14px;
+    margin: 10px 0;
+    font-style: italic;
+    color: var(--cw-text-muted);
 }
 
 /* Bold / italic inside messages inherit message color */
@@ -618,9 +630,8 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow:
-        0 0 0 1px rgba(124,106,247,0.12),
-        0 8px 32px rgba(0,0,0,0.55),
-        0 0 56px var(--cw-accent-glow);
+        0 0 0 1px rgba(0,0,0,0.1),
+        0 8px 32px rgba(0,0,0,0.55);
     transition:
         transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
         box-shadow 0.3s ease,
@@ -640,9 +651,8 @@ body {
 #cw-toggle:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow:
-        0 0 0 1px rgba(124,106,247,0.2),
-        0 12px 24px rgba(0,0,0,0.4),
-        0 0 40px var(--cw-accent-glow);
+        0 0 0 1px rgba(0,0,0,0.15),
+        0 12px 24px rgba(0,0,0,0.4);
 }
 
 #cw-toggle svg {
@@ -673,8 +683,8 @@ body {
     border: 1px solid var(--cw-border);
     border-radius: 22px;
     box-shadow:
-        0 0 0 1px rgba(124,106,247,0.05),
-        0 20px 40px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(0,0,0,0.1),
+        0 20px 40px rgba(0,0,0,0.45),
         inset 0 1px 0 rgba(255,255,255,0.03);
     display: flex;
     flex-direction: column;
@@ -821,7 +831,7 @@ body {
     color: var(--cw-msg-usr-text, rgba(255,255,255,0.95));
     align-self: flex-end;
     border-bottom-right-radius: 4px;
-    box-shadow: 0 3px 12px var(--cw-accent-glow, transparent);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
 }
 
 .cw-msg-chunk {
@@ -876,7 +886,7 @@ body {
 
 .cw-input-wrapper:focus-within {
     border-color: var(--cw-accent);
-    box-shadow: 0 0 0 3px var(--cw-accent-glow);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.25);
 }
 
 #cw-input {
@@ -904,13 +914,12 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
-    box-shadow: 0 3px 8px var(--cw-accent-glow);
-    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
 #cw-send:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px var(--cw-accent-glow);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 #cw-send:active { transform: scale(0.94); }
@@ -1252,7 +1261,7 @@ body {
 .a2ui-text-heading    { font-size: 16px; font-weight: 700; color: var(--cw-text); }
 .a2ui-text-subheading { font-size: 14px; font-weight: 600; color: var(--cw-text); }
 .a2ui-text-body       { font-size: 13px; color: var(--cw-text-dim); }
-.a2ui-text-caption    { font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; }
+.a2ui-text-caption    { font-size: 11px; color: var(--cw-text-dim); font-style: italic; opacity: 0.7; }
 .a2ui-text-label      { font-size: 11px; font-weight: 600; color: var(--cw-accent); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--cw-mono); }
 .a2ui-text-code       { font-size: 12px; font-family: var(--cw-mono); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--cw-teal); }
 
@@ -1395,12 +1404,12 @@ body {
 .a2ui-btn-v3.primary {
     background: var(--cw-accent);
     color: white;
-    box-shadow: 0 3px 10px var(--cw-accent-glow);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
 }
 
 .a2ui-btn-v3.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px var(--cw-accent-glow);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
 
 .a2ui-btn-v3.secondary {
@@ -1411,7 +1420,7 @@ body {
 
 .a2ui-btn-v3.secondary:hover {
     background: rgba(255,255,255,0.1);
-    border-color: var(--cw-accent);
+    border-color: rgba(0,0,0,0.3);
 }
 
 .a2ui-btn-v3.danger {
@@ -1466,7 +1475,7 @@ body {
 .a2ui-checkbox-box.checked {
     background: var(--cw-accent);
     border-color: var(--cw-accent);
-    box-shadow: 0 0 0 3px var(--cw-accent-glow);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
 }
 
 .a2ui-checkbox-label {
@@ -1553,7 +1562,7 @@ body {
     border-radius: 50%;
     background: var(--cw-accent);
     cursor: pointer;
-    box-shadow: 0 0 0 3px var(--cw-accent-glow);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.25);
     transition: transform 0.15s ease;
 }
 

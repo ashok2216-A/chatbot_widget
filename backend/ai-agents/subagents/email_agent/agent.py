@@ -9,6 +9,7 @@ from .tools import (        # type: ignore
     list_outlook_emails,
     get_outlook_email_detail,
     send_outlook_email,
+    disconnect_accounts,
 )
 
 email_agent = LlmAgent(
@@ -20,7 +21,7 @@ email_agent = LlmAgent(
     ),
     description=(
         "Handles all email tasks: reading and sending messages via Gmail "
-        "and Microsoft Outlook."
+        "and Microsoft Outlook. Also handles account disconnection/logout."
     ),
     instruction=EMAIL_INSTRUCTION,
     tools=[
@@ -30,5 +31,6 @@ email_agent = LlmAgent(
         list_outlook_emails,
         get_outlook_email_detail,
         send_outlook_email,
+        disconnect_accounts,
     ],
 )
