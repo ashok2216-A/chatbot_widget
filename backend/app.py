@@ -9,6 +9,7 @@ litellm.suppress_debug_info = True
 
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 import os
 from dotenv import load_dotenv
 import sys
@@ -23,9 +24,12 @@ from logger import get_logger
 logger = get_logger("API_Gateway")
 
 # Import routers and core setup
-from routes import chat, health
+from routes import chat, health, auth
 
 app = FastAPI()
+
+# Authlib/OAuth require session middleware for state storage
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "super-secret-key-123"))
 
 # ─── Global Error Handling ───────────────────────────────────────────────────
 
@@ -98,3 +102,4 @@ async def strict_origin_middleware(request: Request, call_next):
 # ─── Include Routers ─────────────────────────────────────────────────────────
 app.include_router(health.router)
 app.include_router(chat.router)
+app.include_router(auth.router)

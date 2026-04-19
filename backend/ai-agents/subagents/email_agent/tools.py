@@ -37,29 +37,42 @@ logger = get_logger("Email_Tools")
 #  GMAIL
 # ══════════════════════════════════════════════════════════════════════════════
 
+from core.auth_db import get_token
+from core.context import current_session_id
+
 def _get_gmail_service():
-    """Returns (service, error_message). error_message is None on success."""
-    token_b64 = os.getenv("GOOGLE_TOKEN_JSON_B64")
-    if not token_b64:
+    """Returns (service, error_message). Fetching from DB for multi-tenant support."""
+    session_id = current_session_id.get()
+    token_data = get_token(session_id, "google")
+    
+    if not token_data:
+        # Specialized error message that the agent can recognize
         return None, (
-            "[CONFIG ERROR] Gmail is not configured. "
-            "Set the GOOGLE_TOKEN_JSON_B64 environment variable. "
-            "You can generate this by running 'python backend/scripts/setup_google_oauth.py' locally."
+            "AUTH_REQUIRED: Gmail account disconnected. "
+            "Please provide an A2UI button with url='/auth/login?provider=google' for the user."
         )
+
     try:
         from google.oauth2.credentials import Credentials
         from googleapiclient.discovery import build
         from google.auth.exceptions import RefreshError
 
-        token_data = json.loads(base64.b64decode(token_b64).decode())
-        creds = Credentials.from_authorized_user_info(token_data)
+        # Data structure from Authlib/OAuth callback
+        # We need to adapt it for Google Credentials
+        creds = Credentials(
+            token=token_data.get('access_token'),
+            refresh_token=token_data.get('refresh_token'),
+            token_uri=token_data.get('token_uri', 'https://oauth2.googleapis.com/token'),
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+            scopes=token_data.get('scope', '').split(' ')
+        )
         
-        # Test the credentials by building the service
         service = build("gmail", "v1", credentials=creds)
         return service, None
     except RefreshError as rerr:
         logger.error(f"Gmail token refresh failed: {rerr}")
-        return None, "[AUTH ERROR] Your Google session has expired. Please run 'python backend/scripts/setup_google_oauth.py' again to refresh your credentials."
+        return None, "AUTH_REQUIRED: Google session expired. Please reconnect your account."
     except Exception as exc:
         logger.error(f"Gmail auth error: {exc}")
         return None, f"[AUTH ERROR] Gmail authentication failed: {str(exc)}"
@@ -197,53 +210,47 @@ def send_gmail_email(to: str, subject: str, body: str) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
-    """Returns (access_token, error_message). Uses MSAL with a serialized cache."""
+    """Returns (access_token, error_message). Using DB for multi-tenant support."""
+    session_id = current_session_id.get()
+    token_data = get_token(session_id, "microsoft")
+    
+    if not token_data:
+        return None, (
+            "AUTH_REQUIRED: Outlook account disconnected. "
+            "Please provide an A2UI button with url='/auth/login?provider=microsoft' for the user."
+        )
+
     client_id = os.getenv("AZURE_CLIENT_ID")
     client_secret = os.getenv("AZURE_CLIENT_SECRET")
-    tenant_id = os.getenv("AZURE_TENANT_ID")
-    token_cache_b64 = os.getenv("AZURE_TOKEN_CACHE_B64")
-
-    if not all([client_id, client_secret, tenant_id]):
-        return None, (
-            "[CONFIG ERROR] Microsoft Outlook is not configured. "
-            "Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID in .env."
-        )
 
     try:
-        import msal  # type: ignore
-
-        cache = msal.SerializableTokenCache()
-        if token_cache_b64:
-            try:
-                cache.deserialize(base64.b64decode(token_cache_b64).decode())
-            except Exception as e:
-                logger.error(f"MS cache deserialize error: {e}")
-                return None, "[AUTH ERROR] Outlook token cache is corrupted. Please run 'python backend/scripts/setup_microsoft_oauth.py' again."
-
+        import msal
+        
+        # In a real SaaS, you'd use a more robust MSAL cache strategy.
+        # For this POC, we check if the token_data we have is still valid or use RToken.
         app = msal.ConfidentialClientApplication(
             client_id,
-            authority="https://login.microsoftonline.com/consumers",  
+            authority="https://login.microsoftonline.com/common",
             client_credential=client_secret,
-            token_cache=cache,
         )
 
-        accounts = app.get_accounts()
-        scopes = ["https://graph.microsoft.com/.default"]
-        
-        result = None
-        if accounts:
-            result = app.acquire_token_silent(scopes, account=accounts[0])
-        
-        if not result or "access_token" not in result:
-            # Silent failed or no account, try client credentials as fallback (though usually silent is needed for /me)
-            result = app.acquire_token_for_client(scopes=scopes)
+        # Try to refresh using the refresh_token from the DB
+        refresh_token = token_data.get('refresh_token')
+        if not refresh_token:
+             # Fallback to access_token if no refresh token (might be expired soon)
+             return token_data.get('access_token'), None
 
-        if result and "access_token" in result:
+        result = app.acquire_token_by_refresh_token(
+            refresh_token,
+            scopes=["https://graph.microsoft.com/Mail.ReadWrite", "https://graph.microsoft.com/Mail.Send"]
+        )
+
+        if "access_token" in result:
+            # We should technically save the new tokens back to DB if they changed
+            # save_token(session_id, "microsoft", result)
             return result["access_token"], None
 
-        err_msg = result.get('error_description', 'No refresh token available')
-        logger.error(f"MS token acquisition failed: {err_msg}")
-        return None, f"[AUTH ERROR] Microsoft session expired or invalid: {err_msg}. Please run 'python backend/scripts/setup_microsoft_oauth.py' locally."
+        return None, "AUTH_REQUIRED: Microsoft session expired. Please reconnect."
         
     except Exception as exc:
         logger.error(f"MS auth error: {exc}")

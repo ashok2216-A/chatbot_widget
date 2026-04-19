@@ -34,9 +34,9 @@ CONTENT:
 INPUT (interactive — user clicks/types and the value is sent back to you as a message):
   Button        → { "component": "Button", "label": "Send", "message": "command text", "variant": "primary|secondary|danger|ghost", "icon": "send" }
   CheckBox      → { "component": "CheckBox", "label": "Opt in", "checked": false, "message_on": "opted in", "message_off": "opted out" }
-  TextField     → { "component": "TextField", "label": "Email", "placeholder": "you@example.com", "submit_label": "Submit" }
-  Slider        → { "component": "Slider", "label": "Priority", "min": 0, "max": 10, "value": 5, "submit_label": "Set" }
-  DateTimeInput → { "component": "DateTimeInput", "label": "Meeting Time", "submit_label": "Confirm" }
+  TextField     → { "component": "TextField", "label": "Email", "placeholder": "you@example.com" }
+  Slider        → { "component": "Slider", "label": "Priority", "min": 0, "max": 10, "value": 5 }
+  DateTimeInput → { "component": "DateTimeInput", "label": "Meeting Time" }
   ChoicePicker  → { "component": "ChoicePicker", "label": "Pick one", "options": ["A","B","C"], "multi": false }
 
 NAVIGATION:
@@ -68,8 +68,8 @@ You may also use the simpler `data_view` format for basic card lists:
     "children": [
       { "component": "Text", "value": "Schedule a Meeting", "variant": "heading" },
       { "component": "Divider" },
-      { "component": "DateTimeInput", "label": "Meeting Time", "submit_label": "Pick Time" },
-      { "component": "TextField", "label": "Title", "placeholder": "e.g. Project Sync", "submit_label": "Set Title" },
+      { "component": "DateTimeInput", "label": "Meeting Time" },
+      { "component": "TextField", "label": "Title", "placeholder": "e.g. Project Sync" },
       { "component": "Row", "justify": "start", "gap": 8, "children": [
         { "component": "Button", "label": "✅ Create", "message": "Yes, create the event.", "variant": "primary", "icon": "calendar" },
         { "component": "Button", "label": "Cancel",   "message": "Cancel scheduling.", "variant": "secondary" }
