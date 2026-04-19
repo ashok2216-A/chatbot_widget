@@ -161,10 +161,31 @@ export function A2Divider({ label }) {
 
 // ─── INPUT COMPONENTS ────────────────────────────────────────────────────────
 
-export function A2Button({ label = 'Action', message, variant = 'primary', icon, onCommand }) {
+export function A2Button({ label = 'Action', message, variant = 'primary', icon, url, onCommand }) {
   const handleClick = (e) => {
+    // 1. If URL is present, handle as a popup (Auth/Link flow)
+    if (url) {
+      let finalUrl = url;
+      
+      // Auto-inject session details for auth routes
+      if (url.startsWith('/auth/login')) {
+        const sessionId = sessionStorage.getItem('chat_session_id') || 'guest';
+        const connector = url.includes('?') ? '&' : '?';
+        finalUrl = `${window.location.protocol}//${window.location.host}${url}${connector}session_id=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`;
+      }
+
+      const width = 600;
+      const height = 700;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      
+      window.open(finalUrl, 'a2ui-oauth-login', `width=${width},height=${height},left=${left},top=${top},status=no,location=no`);
+      return;
+    }
+
     if (!message) return;
 
+    // 2. Otherwise handle as a chat message command
     // "Smart" button: Gather any sibling TextField values if we're in a card or column
     const container = e.currentTarget.closest('.a2ui-card-v3') || e.currentTarget.closest('.a2ui-column');
     let fullMessage = message;
@@ -174,7 +195,6 @@ export function A2Button({ label = 'Action', message, variant = 'primary', icon,
       if (inputs.length > 0) {
         let draftDetails = "\n\n--- DRAFT DETAILS ---";
         inputs.forEach(input => {
-          // Find the label text for this input
           const textFieldParent = input.closest('.a2ui-textfield');
           const labelEl = textFieldParent?.querySelector('.a2ui-input-label');
           const labelText = labelEl ? labelEl.textContent : 'Field';

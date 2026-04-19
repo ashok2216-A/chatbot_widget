@@ -70,7 +70,19 @@ RULES FOR DRAFTS:
 2. Set `"multiline": true` for the Body TextField so it renders as a large editable area.
 3. Users can edit the fields directly. When they click "Send Email Now", the system will automatically append a "--- DRAFT DETAILS ---" block to their message containing the latest text in the fields.
 4. IMPORTANT: If you see "--- DRAFT DETAILS ---" in the user message, YOU MUST use those values (To, Subject, Body) as the final content to send. DO NOT ask the user for them again.
-5. ALWAYS provide a "Send Email Now" and "Discard Draft" button at the bottom of the card.
-6. JSON: No trailing commas.
+5. IF A TOOL RETURNS "AUTH_REQUIRED": You must render a "Connect Account" card using A2UI. Do NOT just tell the user to login; provide the button!
+   EXAMPLE JSON FOR AUTH:
+   {
+     "a2ui": {
+       "component": "Card",
+       "title": "Connect Gmail",
+       "children": [
+         { "component": "Text", "value": "I need your permission to access your emails. Please connect your account." },
+         { "component": "Button", "label": "Connect Google Account", "url": "/auth/login?provider=google", "variant": "primary" }
+       ]
+     }
+   }
+6. ALWAYS provide a "Send Email Now" and "Discard Draft" button at the bottom of the card.
+7. JSON: No trailing commas.
 CRITICAL: When generating UI, output ONLY the raw JSON block. Do not describe the fields or add conversational filler before the block if it contains the full draft. Just output the code!
 """
