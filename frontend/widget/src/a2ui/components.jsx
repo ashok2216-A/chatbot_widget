@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { formatText } from '../utils/markdown';
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
 const ICONS = {
@@ -81,7 +82,7 @@ export function A2Text({ value, text, label, variant = 'body' }) {
   const val = value || text || label || '';
   const tagMap = { heading: 'h3', subheading: 'h4', body: 'p', caption: 'span', label: 'span', code: 'code' };
   const Tag = tagMap[variant] || 'p';
-  return <Tag className={`a2ui-text a2ui-text-${variant}`}>{val}</Tag>;
+  return <Tag className={`a2ui-text a2ui-text-${variant}`} dangerouslySetInnerHTML={{ __html: formatText(val) }} />;
 }
 
 export function A2Image({ src, alt = 'Image', width, height, rounded = true, className = '' }) {
@@ -162,20 +163,25 @@ export function A2Divider({ label }) {
 
 // ─── INPUT COMPONENTS ────────────────────────────────────────────────────────
 
-export function A2Button({ label = 'Action', message, variant = 'primary', icon, url, onCommand }) {
+export function A2Button({ label = 'Action', message, variant = 'primary', icon, url, on_click, onCommand }) {
   const handleClick = (e) => {
-    // 1. If URL is present, handle as a popup (Auth/Link flow)
-    if (url) {
-      let finalUrl = url;
+    // Determine if this is an OAuth popup trigger
+    const authTrigger = on_click?.startsWith('auth:login') ? '/' + on_click.replace(':', '/') : null;
+    const targetUrl = url || authTrigger;
+
+    if (targetUrl) {
+      let finalUrl = targetUrl;
       
       // Auto-inject session details for auth routes
-      if (url.startsWith('/auth/login')) {
+      if (targetUrl.includes('/auth/login')) {
         const sessionId = sessionStorage.getItem('chat_session_id') || 'guest';
-        const connector = url.includes('?') ? '&' : '?';
+        const connector = targetUrl.includes('?') ? '&' : '?';
         const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        // Ensure we don't have double slashes if backendBase ends with /
         const base = backendBase.endsWith('/') ? backendBase.slice(0, -1) : backendBase;
-        finalUrl = `${base}${url}${connector}session_id=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`;
+        
+        // Ensure path starts with /
+        const path = targetUrl.startsWith('/') ? targetUrl : '/' + targetUrl;
+        finalUrl = `${base}${path}${connector}session_id=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`;
       }
 
       const width = 600;

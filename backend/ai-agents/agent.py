@@ -14,6 +14,7 @@ sys.path.insert(0, _subagents_dir)
 from rag_agent.agent import rag_agent           # type: ignore
 from email_agent.agent import email_agent       # type: ignore
 from scheduler_agent.agent import scheduler_agent  # type: ignore
+from social_agent.agent import social_agent        # type: ignore
 from core.web_tools import search_image        # type: ignore
 
 # ── Fallback model list ───────────────────────────────────────────────────────
@@ -46,5 +47,6 @@ root_agent = LlmAgent(
         rag_agent,
         email_agent,
         scheduler_agent,
+        social_agent,
     ],
 )

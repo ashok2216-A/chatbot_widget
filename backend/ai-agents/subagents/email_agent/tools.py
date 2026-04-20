@@ -37,7 +37,8 @@ logger = get_logger("Email_Tools")
 #  GENERAL / AUTH
 # ══════════════════════════════════════════════════════════════════════════════
 
-from core.auth_db import get_token, delete_tokens
+from core.token_service import get_valid_token
+from core.auth_db import delete_tokens
 from core.context import current_session_id
 
 def disconnect_accounts() -> str:
@@ -56,7 +57,7 @@ def disconnect_accounts() -> str:
 def _get_gmail_service():
     """Returns (service, error_message). Fetching from DB for multi-tenant support."""
     session_id = current_session_id.get()
-    token_data = get_token(session_id, "google")
+    token_data = get_valid_token(session_id, "google")
     
     if not token_data:
         # Specialized error message that the agent can recognize
@@ -225,7 +226,7 @@ def send_gmail_email(to: str, subject: str, body: str) -> str:
 def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
     """Returns (access_token, error_message). Using DB for multi-tenant support."""
     session_id = current_session_id.get()
-    token_data = get_token(session_id, "microsoft")
+    token_data = get_valid_token(session_id, "microsoft")
     
     if not token_data:
         return None, (

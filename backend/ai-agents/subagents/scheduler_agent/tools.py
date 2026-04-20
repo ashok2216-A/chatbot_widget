@@ -37,13 +37,13 @@ logger = get_logger("Scheduler_Tools")
 #  GOOGLE CALENDAR
 # ══════════════════════════════════════════════════════════════════════════════
 
-from core.auth_db import get_token
+from core.token_service import get_valid_token
 from core.context import current_session_id
 
 def _get_google_calendar_service():
     """Returns (service, error_message). Fetching from DB for multi-tenant support."""
     session_id = current_session_id.get()
-    token_data = get_token(session_id, "google")
+    token_data = get_valid_token(session_id, "google")
     
     if not token_data:
         return None, (
@@ -194,42 +194,15 @@ def delete_google_calendar_event(event_id: str) -> str:
 def _get_ms_token() -> Tuple[Optional[str], Optional[str]]:
     """Returns (access_token, error_message). Using DB for multi-tenant support."""
     session_id = current_session_id.get()
-    token_data = get_token(session_id, "microsoft")
+    token_data = get_valid_token(session_id, "microsoft")
     
     if not token_data:
         return None, (
             "AUTH_REQUIRED: Microsoft account disconnected. "
             "Please provide an A2UI button with url='/auth/login?provider=microsoft' for the user."
         )
-
-    client_id = os.getenv("AZURE_CLIENT_ID")
-    client_secret = os.getenv("AZURE_CLIENT_SECRET")
-
-    try:
-        import msal
-        app = msal.ConfidentialClientApplication(
-            client_id,
-            authority="https://login.microsoftonline.com/common",
-            client_credential=client_secret,
-        )
-
-        refresh_token = token_data.get('refresh_token')
-        if not refresh_token:
-             return token_data.get('access_token'), None
-
-        result = app.acquire_token_by_refresh_token(
-            refresh_token,
-            scopes=["https://graph.microsoft.com/Calendars.ReadWrite"]
-        )
-
-        if "access_token" in result:
-            return result["access_token"], None
-
-        return None, "AUTH_REQUIRED: Microsoft session expired. Please reconnect."
-        
-    except Exception as exc:
-        logger.error(f"MS Calendar auth error: {exc}")
-        return None, f"[AUTH ERROR] Microsoft Calendar authentication error: {str(exc)}"
+    
+    return token_data.get('access_token'), None
 
 
 def _ms_headers(token: str) -> dict:
