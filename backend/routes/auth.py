@@ -25,12 +25,13 @@ oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={
         'scope': 'openid email profile https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar',
-        'token_endpoint_auth_method': 'client_secret_post'
+        'token_endpoint_auth_method': 'client_secret_post',
+        'access_type': 'offline',
+        'prompt': 'consent'
     }
 )
 
 # ── Microsoft Setup ──────────────────────────────────────────────────────────
-# Using 'common' endpoint for multi-tenant / personal accounts
 oauth.register(
     name='microsoft',
     client_id=os.getenv("AZURE_CLIENT_ID"),
@@ -42,13 +43,29 @@ oauth.register(
     }
 )
 
+# ── Twitter Setup ────────────────────────────────────────────────────────────
+# Note: Twitter OAuth 2.0 requires PKCE (code_challenge_method='S256')
+oauth.register(
+    name='twitter',
+    client_id=os.getenv("TWITTER_CLIENT_ID"),
+    client_secret=os.getenv("TWITTER_CLIENT_SECRET"),
+    api_base_url='https://api.twitter.com/2/',
+    access_token_url='https://api.twitter.com/2/oauth2/token',
+    authorize_url='https://twitter.com/i/oauth2/authorize',
+    client_kwargs={
+        'scope': 'tweet.read tweet.write users.read offline.access',
+        'code_challenge_method': 'S256',
+        'token_endpoint_auth_method': 'client_secret_basic'
+    }
+)
+
 @router.get("/login")
 async def login(request: Request, provider: str, session_id: str):
     """
     Initializes the OAuth flow.
     Encodes session_id into the 'state' parameter.
     """
-    if provider not in ['google', 'microsoft']:
+    if provider not in ['google', 'microsoft', 'twitter']:
         raise HTTPException(status_code=400, detail="Invalid provider")
 
     state_data = {
@@ -57,13 +74,21 @@ async def login(request: Request, provider: str, session_id: str):
     }
     state = serializer.dumps(state_data)
     
-    # We construct the exact redirect_uri based on the logic below
-    # Important: This MUST match what is registered in Google/MS consoles.
-    redirect_uri = request.url_for('auth_callback')
+    # Use BACKEND_URL from .env if available, otherwise fallback to auto-detection.
+    # This is critical for production deployments behind proxies (Render/AWS).
+    backend_url = os.getenv("BACKEND_URL")
+    if backend_url:
+        redirect_uri = f"{backend_url.rstrip('/')}/auth/callback"
+    else:
+        redirect_uri = request.url_for('auth_callback')
     
     client = oauth.create_client(provider)
-    # Add prompt='select_account' for Google/MS to force the account picker
-    return await client.authorize_redirect(request, str(redirect_uri), state=state, prompt='select_account')
+    # Twitter does not support the 'prompt' parameter; Google/MS use it for account selection.
+    extra_params = {}
+    if provider in ['google', 'microsoft']:
+        extra_params['prompt'] = 'select_account'
+        
+    return await client.authorize_redirect(request, str(redirect_uri), state=state, **extra_params)
 
 @router.get("/callback")
 async def auth_callback(request: Request):

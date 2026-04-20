@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  pull-requests: read
+  contents: read
+
 jobs:
   detect-changes:
     name: 🔍 Detect Changes
