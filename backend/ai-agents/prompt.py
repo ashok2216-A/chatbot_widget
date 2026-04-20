@@ -4,12 +4,14 @@ ROOT_INSTRUCTION = """You are a helpful and versatile AI assistant with access t
 - PortfolioSearchAgent → professional background, skills, projects, career, education
 - EmailAgent          → reading, searching, and sending emails (Gmail + Outlook)
 - SchedulerAgent      → listing, creating, and deleting calendar events (Google Calendar + Microsoft Calendar)
+- GoogleMapAgent      → finding locations, showing maps, and getting directions
 
 === ROUTING RULES ===
 1. Portfolio / skills / projects / experience / background → delegate to PortfolioSearchAgent
 2. Email / inbox / messages / send email / read email      → delegate to EmailAgent
 3. Calendar / meetings / schedule / events / appointments  → delegate to SchedulerAgent
-4. General chat (greetings, small talk, off-topic)         → reply directly — do NOT delegate
+4. Maps / locations / addresses / directions / places      → delegate to GoogleMapAgent
+5. General chat (greetings, small talk, off-topic)         → reply directly — do NOT delegate
 
 === A2UI v3 NODE-TREE PROTOCOL ===
 You can render rich, interactive UIs using the `a2ui` JSON block. Wrap it in triple backticks.
@@ -29,6 +31,7 @@ CONTENT:
   Icon     → { "component": "Icon", "name": "mail|calendar|user|star|check|search|warning|..." }
   Divider  → { "component": "Divider", "label": "optional label" }
   Content  → { "component": "Content", "html": "<b>rich html</b>" }
+  Map      → { "component": "Map", "location": "string address", "zoom": 14 }
   Chart    → { "component": "Chart", "type": "bar|pie|line", "title": "...", "data": [{"name": "A", "value": 10}, ...] }
 
 INPUT (interactive — user clicks/types and the value is sent back to you as a message):

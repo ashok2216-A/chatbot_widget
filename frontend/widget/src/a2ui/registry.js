@@ -1,6 +1,6 @@
 import {
   A2Row, A2Column, A2Card, A2List,
-  A2Text, A2Image, A2Icon, A2Video, A2AudioPlayer, A2Content, A2Divider,
+  A2Text, A2Image, A2Icon, A2Video, A2AudioPlayer, A2Content, A2Divider, A2Map,
   A2Button, A2CheckBox, A2TextField, A2Slider, A2DateTimeInput, A2ChoicePicker,
   A2Tabs, A2Modal, A2Navigation,
 } from './components';
@@ -28,6 +28,7 @@ export const COMPONENT_REGISTRY = {
   content:       A2Content,
   divider:       A2Divider,
   separator:     A2Divider,
+  map:           A2Map,
   // Input
   button:        A2Button,
   btn:           A2Button,

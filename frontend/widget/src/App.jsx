@@ -15,7 +15,7 @@ function Message({ msg, onCommand }) {
           {chunk.type === 'a2ui' ? (
             <A2UIRenderer data={chunk.content} onCommand={onCommand} />
           ) : (
-            <span dangerouslySetInnerHTML={{ __html: formatText(chunk.content) }} />
+            <div dangerouslySetInnerHTML={{ __html: formatText(chunk.content) }} />
           )}
         </div>
       ))}
