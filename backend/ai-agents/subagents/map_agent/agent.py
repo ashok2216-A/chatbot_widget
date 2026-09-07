@@ -7,7 +7,7 @@ map_agent = LlmAgent(
     name="GoogleMapAgent",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
-        fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],
+        fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest", "mistral/mistral-small", "mistral/mistral-medium"],
         max_tokens=2000
     ),
     description="Finds locations, shows maps, and provides directions/navigation.",

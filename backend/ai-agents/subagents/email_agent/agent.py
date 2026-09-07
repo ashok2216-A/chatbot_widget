@@ -16,7 +16,7 @@ email_agent = LlmAgent(
     name="EmailComponent",
     model=LiteLlm(
         model="openrouter/google/gemini-2.0-flash-001",
-        fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest"],
+        fallbacks=["groq/llama-3.3-70b-versatile", "mistral/mistral-large-latest", "mistral/mistral-small", "mistral/mistral-medium"],
         max_tokens=4000,
     ),
     description=(

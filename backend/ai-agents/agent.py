@@ -26,7 +26,8 @@ MODEL_FALLBACKS = [
     "groq/gemma2-9b-it",                # Lightweight, separate Groq TPM bucket
     "groq/llama-3.1-8b-instant",        # Very fast, low token usage
     "mistral/mistral-small-latest",     # Separate Mistral rate limit bucket
-    "mistral/mistral-large-latest",     # Heavy fallback
+    "mistral/mistral-large-latest",
+    "mistral/mistral-small", "mistral/mistral-medium"     # Heavy fallback
 ]
 
 # ── Root Coordinator Agent ─────────────────────────────────────────────────────
